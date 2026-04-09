@@ -16,6 +16,7 @@ from rich_argparse import RichHelpFormatter
 
 import md2cf.document
 from md2cf import api
+from md2cf.anchor import rewrite_page_anchors
 from md2cf.console_output import (
     console,
     error_console,
@@ -230,6 +231,15 @@ def get_parser():
         action="store_true",
         help="when relative links are enabled and a link doesn't point to an "
         "existing and uploaded file, leave the link as-is instead of exiting.",
+    )
+
+    anchor_group = parser.add_argument_group("anchor arguments")
+    anchor_group.add_argument(
+        "--convert-anchors",
+        action=argparse.BooleanOptionalAction,
+        default=True,
+        help="rewrite markdown-style fragment anchors to Confluence-native format. "
+        "Enabled by default. Use --no-convert-anchors to disable.",
     )
 
     parser.add_argument(
@@ -543,6 +553,9 @@ def pre_process_page(page, args, postface_markup, preface_markup, space_info):
 
     if postface_markup:
         page.body = page.body + postface_markup
+
+    if args.convert_anchors:
+        page.body = rewrite_page_anchors(page.body, page.title)
 
 
 def validate_relative_links(pages_to_upload, path_to_page):

@@ -319,3 +319,94 @@ Yep.
 """
 
     assert doc.get_document_frontmatter(source_markdown.splitlines(keepends=True)) == {}
+
+
+def test_get_pages_from_directory_skip_subtrees_wo_markdown(fs):
+    """Subtrees without any markdown files are skipped entirely."""
+    fs.create_file("/root-folder/docs/readme.md")
+    fs.create_file("/root-folder/images/logo.png")
+    fs.create_dir("/root-folder/images/icons")
+    fs.create_file("/root-folder/images/icons/favicon.ico")
+    fs.create_file("/root-folder/data/config.yaml")
+
+    result = doc.get_pages_from_directory(
+        Path("/root-folder"), skip_subtrees_wo_markdown=True
+    )
+    assert result == [
+        FakePage(title="docs", file_path=None, parent_title=None),
+        FakePage(
+            title="readme",
+            file_path=Path("/root-folder/docs/readme.md"),
+            parent_title="docs",
+        ),
+    ]
+
+
+def test_get_pages_from_directory_skip_subtrees_wo_markdown_nested(fs):
+    """A subtree with markdown deeply nested is kept, but sibling subtrees without
+    markdown are pruned."""
+    fs.create_file("/root-folder/a/b/c/deep.md")
+    fs.create_file("/root-folder/a/b/other/data.txt")
+    fs.create_file("/root-folder/empty-tree/sub/file.txt")
+
+    result = doc.get_pages_from_directory(
+        Path("/root-folder"), skip_subtrees_wo_markdown=True
+    )
+    assert result == [
+        FakePage(title="a", file_path=None, parent_title=None),
+        FakePage(title="b", file_path=None, parent_title="a"),
+        FakePage(title="c", file_path=None, parent_title="b"),
+        FakePage(
+            title="deep",
+            file_path=Path("/root-folder/a/b/c/deep.md"),
+            parent_title="c",
+        ),
+    ]
+
+
+def test_get_pages_from_directory_skip_subtrees_wo_markdown_root_has_md(fs):
+    """Root-level markdown files are still included; only subtrees without markdown
+    are pruned."""
+    fs.create_file("/root-folder/index.md")
+    fs.create_file("/root-folder/no-md/data.csv")
+
+    result = doc.get_pages_from_directory(
+        Path("/root-folder"), skip_subtrees_wo_markdown=True
+    )
+    assert result == [
+        FakePage(
+            title="index",
+            file_path=Path("/root-folder/index.md"),
+            parent_title=None,
+        ),
+    ]
+
+
+def test_get_pages_from_directory_skip_subtrees_wo_markdown_all_empty(fs):
+    """When no subtree contains markdown, nothing is returned."""
+    fs.create_file("/root-folder/images/logo.png")
+    fs.create_file("/root-folder/data/config.yaml")
+
+    result = doc.get_pages_from_directory(
+        Path("/root-folder"), skip_subtrees_wo_markdown=True
+    )
+    assert result == []
+
+
+def test_get_pages_from_directory_skip_subtrees_wo_markdown_disabled(fs):
+    """Without the flag, subtrees without markdown are still traversed and produce
+    folder pages when they have subdirectories."""
+    fs.create_file("/root-folder/docs/readme.md")
+    fs.create_file("/root-folder/images/icons/favicon.ico")
+
+    result_with = doc.get_pages_from_directory(
+        Path("/root-folder"), skip_subtrees_wo_markdown=True
+    )
+    result_without = doc.get_pages_from_directory(
+        Path("/root-folder"), skip_subtrees_wo_markdown=False
+    )
+    # With the flag, images/ subtree is excluded
+    assert FakePage(title="images") not in result_with
+    # Without the flag, images/ subtree is included as a folder page
+    # (it has a subdirectory, so it gets a page entry)
+    assert FakePage(title="images") in result_without

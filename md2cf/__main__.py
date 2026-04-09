@@ -211,6 +211,11 @@ def get_parser():
         action="store_true",
         help="if a folder doesn't contain documents, skip it",
     )
+    dir_group.add_argument(
+        "--skip-subtrees-wo-markdown",
+        action="store_true",
+        help="skip directory subtrees that do not contain any markdown files",
+    )
 
     relative_links_group = parser.add_argument_group("relative links arguments")
     relative_links_group.add_argument(
@@ -697,6 +702,7 @@ def collect_pages_to_upload(args):
                     use_pages_file=args.use_pages_file,
                     use_gitignore=args.use_gitignore,
                     enable_relative_links=args.enable_relative_links,
+                    skip_subtrees_wo_markdown=args.skip_subtrees_wo_markdown,
                 )
             else:
                 try:

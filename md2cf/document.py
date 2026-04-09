@@ -71,6 +71,18 @@ class Page(object):
         )
 
 
+def _subtree_has_markdown(path: Path, git_repo: GitRepository) -> bool:
+    """Check if a directory tree contains any .md files (respecting gitignore)."""
+    for dirpath, _, filenames in os.walk(path):
+        dirpath = Path(dirpath).resolve()
+        if git_repo.is_ignored(dirpath):
+            continue
+        for fname in filenames:
+            if fname.endswith(".md") and not git_repo.is_ignored(dirpath / fname):
+                return True
+    return False
+
+
 def find_non_empty_parent_path(
     current_dir: Path, folder_data: Dict[Path, Dict[str, Any]], default: Path
 ) -> Path:
@@ -91,6 +103,7 @@ def get_pages_from_directory(
     remove_text_newlines: bool = False,
     use_gitignore: bool = True,
     enable_relative_links: bool = False,
+    skip_subtrees_wo_markdown: bool = False,
 ) -> List[Page]:
     """
     Collect a list of markdown files recursively under the file_path directory.
@@ -107,6 +120,8 @@ def get_pages_from_directory(
       search
     :param enable_relative_links: extract all relative links and replace them with
       placeholders
+    :param skip_subtrees_wo_markdown: skip directory subtrees that contain no markdown
+      files
     :return: A list of paths to the markdown files to upload.
     """
     processed_pages = list()
@@ -129,6 +144,13 @@ def get_pages_from_directory(
         markdown_files = [
             path for path in markdown_files if not git_repo.is_ignored(path)
         ]
+
+        if skip_subtrees_wo_markdown:
+            directories[:] = [
+                d
+                for d in directories
+                if _subtree_has_markdown(Path(current_path, d), git_repo)
+            ]
 
         folder_data[current_path] = {"n_files": len(markdown_files)}
 

@@ -293,6 +293,35 @@ folderA/
 ```
 </details>
 
+#### Skipping subtrees without markdown
+
+Passing `--skip-subtrees-wo-markdown` will skip any directory subtree that does not contain any markdown files. This is useful when your folder structure contains non-documentation directories (e.g. images, data, configurations) that you don't want to appear in Confluence.
+
+<details>
+<summary>Example</summary>
+```text
+document.md
+docs/
+  guide.md
+images/
+  icons/
+    favicon.ico
+  logo.png
+data/
+  config.yaml
+```
+
+will be uploaded as:
+
+```text
+document
+docs/
+  guide
+```
+
+The `images/` and `data/` subtrees are entirely skipped because they contain no markdown files.
+</details>
+
 ## Terminal output format
 
 By default, `md2cf` produces rich output with animated progress bars that are meant for human consumption. If the output is redirected to a file, the progress bars will not be displayed and only the final result will be written to the file. Error messages are always printed to standard error.

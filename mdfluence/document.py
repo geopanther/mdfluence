@@ -132,6 +132,9 @@ def get_pages_from_directory(
     for current_path, directories, file_names in os.walk(file_path):
         current_path = Path(current_path).resolve()
 
+        directories.sort()
+        file_names.sort()
+
         if git_repo.is_ignored(current_path):
             continue
 

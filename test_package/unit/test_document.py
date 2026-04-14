@@ -22,9 +22,9 @@ def test_get_pages_from_directory(fs):
     assert result == [
         FakePage(
             title="root-folder-file",
-            file_path=Path("/root-folder/root-folder-file.md", parent_title=None),
+            file_path=Path("/root-folder/root-folder-file.md"),
         ),
-        FakePage(title="parent", file_path=None, parent_title=None),
+        FakePage(title="parent", file_path=None),
         FakePage(title="child", file_path=None, parent_title="parent"),
         FakePage(
             title="child-file",
@@ -50,9 +50,9 @@ def test_get_pages_from_directory_use_pages(fs):
     assert result == [
         FakePage(
             title="root-folder-file",
-            file_path=Path("/root-folder/root-folder-file.md", parent_title=None),
+            file_path=Path("/root-folder/root-folder-file.md"),
         ),
-        FakePage(title="parent", file_path=None, parent_title=None),
+        FakePage(title="parent", file_path=None),
         FakePage(title="child", file_path=None, parent_title="parent"),
         FakePage(
             title="child-file",
@@ -72,9 +72,9 @@ def test_get_pages_from_directory_collapse_single_pages(fs):
     assert result == [
         FakePage(
             title="root-folder-file",
-            file_path=Path("/root-folder/root-folder-file.md", parent_title=None),
+            file_path=Path("/root-folder/root-folder-file.md"),
         ),
-        FakePage(title="parent", file_path=None, parent_title=None),
+        FakePage(title="parent", file_path=None),
         FakePage(
             title="child-file",
             file_path=Path("/root-folder/parent/child/child-file.md"),
@@ -109,12 +109,11 @@ def test_get_pages_from_directory_skip_empty(fs):
     assert result == [
         FakePage(
             title="root-folder-file",
-            file_path=Path("/root-folder/root-folder-file.md", parent_title=None),
+            file_path=Path("/root-folder/root-folder-file.md"),
         ),
         FakePage(
             title="child",
             file_path=None,
-            parent_title=None,
         ),
         FakePage(
             title="child-file",
@@ -132,7 +131,6 @@ def test_get_pages_from_directory_skip_empty_no_non_empty_parent(fs):
         FakePage(
             title="child",
             file_path=None,
-            parent_title=None,
         ),
         FakePage(
             title="child-file",
@@ -150,12 +148,11 @@ def test_get_pages_from_directory_collapse_empty(fs):
     assert result == [
         FakePage(
             title="root-folder-file",
-            file_path=Path("/root-folder/root-folder-file.md", parent_title=None),
+            file_path=Path("/root-folder/root-folder-file.md"),
         ),
         FakePage(
             title="parent/child",
             file_path=None,
-            parent_title=None,
         ),
         FakePage(
             title="child-file",
@@ -173,7 +170,6 @@ def test_get_pages_from_directory_collapse_empty_no_non_empty_parent(fs):
         FakePage(
             title="parent/child",
             file_path=None,
-            parent_title=None,
         ),
         FakePage(
             title="child-file",
@@ -333,7 +329,7 @@ def test_get_pages_from_directory_skip_subtrees_wo_markdown(fs):
         Path("/root-folder"), skip_subtrees_wo_markdown=True
     )
     assert result == [
-        FakePage(title="docs", file_path=None, parent_title=None),
+        FakePage(title="docs", file_path=None),
         FakePage(
             title="readme",
             file_path=Path("/root-folder/docs/readme.md"),
@@ -353,7 +349,7 @@ def test_get_pages_from_directory_skip_subtrees_wo_markdown_nested(fs):
         Path("/root-folder"), skip_subtrees_wo_markdown=True
     )
     assert result == [
-        FakePage(title="a", file_path=None, parent_title=None),
+        FakePage(title="a", file_path=None),
         FakePage(title="b", file_path=None, parent_title="a"),
         FakePage(title="c", file_path=None, parent_title="b"),
         FakePage(
@@ -377,7 +373,6 @@ def test_get_pages_from_directory_skip_subtrees_wo_markdown_root_has_md(fs):
         FakePage(
             title="index",
             file_path=Path("/root-folder/index.md"),
-            parent_title=None,
         ),
     ]
 

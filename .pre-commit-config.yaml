@@ -1,3 +1,6 @@
+default_stages: [pre-push]
+default_install_hook_types: [pre-commit, pre-push]
+
 repos:
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v3.2.0
@@ -17,9 +20,15 @@ repos:
     hooks:
       - id: isort
         args: ["--profile", "black", "--filter-files"]
-        language_version: python3.11
   - repo: https://github.com/pycqa/flake8
-    rev: '6.0.0'  # pick a git hash / tag to point to
+    rev: '6.0.0'
     hooks:
       - id: flake8
-        language_version: python3.11
+  - repo: local
+    hooks:
+      - id: tox
+        name: tox
+        entry: tox -e py312
+        language: system
+        always_run: true
+        pass_filenames: false

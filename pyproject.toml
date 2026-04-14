@@ -1,0 +1,73 @@
+[build-system]
+requires = ["setuptools>=68.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "mdfluence"
+version = "0.1.0"
+description = "Convert and upload Markdown documents to Confluence (fork of md2cf by Jack Gaino)"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.12"
+authors = [
+    { name = "geopanther", email = "geopanther@mail.de" },
+]
+keywords = ["markdown", "confluence"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "rich-argparse>=1.0.0,<2",
+    "rich>=13.0,<16",
+    "mistune>=0.8.4,<1",
+    "chardet>=5.1.0,<8",
+    "requests>=2.31.0,<3",
+    "PyYAML>=6.0.1,<7",
+    "gitignorefile>=1.1.2,<2",
+]
+
+[project.urls]
+Homepage = "https://github.com/geopanther/mdfluence"
+Repository = "https://github.com/geopanther/mdfluence"
+Changelog = "https://github.com/geopanther/mdfluence/blob/main/CHANGELOG.md"
+
+[project.scripts]
+mdfluence = "mdfluence.__main__:main"
+
+[tool.setuptools]
+packages = ["mdfluence"]
+
+[project.optional-dependencies]
+dev = [
+    "bump2version",
+    "build",
+    "pre-commit",
+    "tox",
+]
+test = [
+    "pytest",
+    "pytest-mock",
+    "pyfakefs",
+    "requests-mock",
+]
+
+[tool.tox]
+envlist = ["py312", "py313"]
+
+[tool.tox.env_run_base]
+deps = [
+    "pytest",
+    "pytest-mock",
+    "pyfakefs",
+    "requests-mock",
+]
+commands = [["pytest"]]
+
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore:Flags not at the start of the expression:DeprecationWarning",
+]
+pythonpath = ["."]

@@ -1,3 +1,0 @@
-pytest-mock==1.11.1
-pyfakefs
-requests-mock==1.10.0

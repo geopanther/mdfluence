@@ -4,8 +4,8 @@ from enum import Enum
 from pathlib import Path
 from typing import NamedTuple
 
-import md2cf.document
-from md2cf import api
+import mdfluence.document
+from mdfluence import api
 
 CONTENT_HASH_REGEX = re.compile(r"\[v([a-f0-9]{40})]$")
 
@@ -49,7 +49,7 @@ def get_parent_id_from_title(confluence, page):
 def upsert_page(
     confluence: api.MinimalConfluence,
     message: str,
-    page: md2cf.document.Page,
+    page: mdfluence.document.Page,
     only_changed: bool = False,
     replace_all_labels: bool = False,
     minor_edit: bool = False,

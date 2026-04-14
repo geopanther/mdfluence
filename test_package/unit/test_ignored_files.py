@@ -2,7 +2,7 @@ from pathlib import Path
 
 from pyfakefs.fake_filesystem import FakeFilesystem
 
-from md2cf.ignored_files import GitRepository
+from mdfluence.ignored_files import GitRepository
 
 README = """# Title
 

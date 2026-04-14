@@ -1,6 +1,6 @@
 from pathlib import Path
 
-import md2cf.document as doc
+import mdfluence.document as doc
 from test_package.utils import FakePage
 
 ROOT_GITIGNORE = """.git

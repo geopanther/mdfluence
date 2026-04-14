@@ -2,7 +2,7 @@ import re
 
 import pytest
 
-from md2cf.confluence_renderer import ConfluenceRenderer, ConfluenceTag
+from mdfluence.confluence_renderer import ConfluenceRenderer, ConfluenceTag
 
 
 def test_add_namespace():

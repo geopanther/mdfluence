@@ -1,4 +1,4 @@
-from md2cf.upsert import CONTENT_HASH_REGEX
+from mdfluence.upsert import CONTENT_HASH_REGEX
 
 
 def test_hash_messge(mocker):

@@ -4,14 +4,14 @@ with open("README.md") as f:
     long_description = f.read()
 
 setup(
-    name="md2cf",
-    version="2.3.0",
-    packages=["md2cf"],
-    url="https://github.com/iamjackg/md2cf",
+    name="mdfluence",
+    version="0.1.0",
+    packages=["mdfluence"],
+    url="https://github.com/geopanther/mdfluence",
     license="MIT",
-    author="Jack Gaino",
-    author_email="md2cf@jackgaino.com",
-    description="Convert Markdown documents to Confluence",
+    author="geopanther",
+    author_email="geopanther@mail.de",
+    description="Convert and upload Markdown documents to Confluence (fork of md2cf by Jack Gaino)",
     long_description=long_description,
     long_description_content_type="text/markdown",
     classifiers=[
@@ -30,5 +30,5 @@ setup(
         "gitignorefile==1.1.2",
     ],
     python_requires=">=3.7",
-    entry_points={"console_scripts": ["md2cf=md2cf.__main__:main"]},
+    entry_points={"console_scripts": ["mdfluence=mdfluence.__main__:main"]},
 )

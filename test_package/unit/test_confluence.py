@@ -26,7 +26,7 @@ TEST_HOST = "http://example.com/api/"
 
 @pytest.fixture()
 def confluence():
-    from md2cf.api import MinimalConfluence
+    from mdfluence.api import MinimalConfluence
 
     c = MinimalConfluence(host=TEST_HOST, username="foo", password="bar")
 
@@ -34,7 +34,7 @@ def confluence():
 
 
 def test_user_pass_auth():
-    import md2cf.api as api
+    import mdfluence.api as api
 
     c = api.MinimalConfluence(
         host="http://example.com/", username="foo", password="bar"
@@ -46,7 +46,7 @@ def test_user_pass_auth():
 
 
 def test_token_auth():
-    import md2cf.api as api
+    import mdfluence.api as api
 
     c = api.MinimalConfluence(host="http://example.com/", token="hello")
 

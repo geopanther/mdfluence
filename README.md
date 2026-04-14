@@ -1,28 +1,30 @@
-# md2cf
+# mdfluence
 
-`md2cf` is a tool and library that allows you to convert Markdown documents to Confluence Storage format and upload them to a Confluence instance.
+> **Note:** `mdfluence` is a fork of [md2cf](https://github.com/iamjackg/md2cf) by Jack Gaino.
+
+`mdfluence` is a tool and library that allows you to convert Markdown documents to Confluence Storage format and upload them to a Confluence instance.
 
 ## Features
 
-- **Convert Markdown documents:** `md2cf` includes a library that implements a [Mistune](https://github.com/lepture/mistune) renderer, which outputs Confluence Storage Format.
-- **Talk to the Confluence API:** `md2cf` also features an embedded micro-implementation of the [Confluence Server REST API](https://developer.atlassian.com/server/confluence/confluence-server-rest-api/) with basic support for creating and updating pages and attachments.
-- **Automate the upload process:** You can use `md2cf`'s full-featured command line utility to automate the upload process for you.
+- **Convert Markdown documents:** `mdfluence` includes a library that implements a [Mistune](https://github.com/lepture/mistune) renderer, which outputs Confluence Storage Format.
+- **Talk to the Confluence API:** `mdfluence` also features an embedded micro-implementation of the [Confluence Server REST API](https://developer.atlassian.com/server/confluence/confluence-server-rest-api/) with basic support for creating and updating pages and attachments.
+- **Automate the upload process:** You can use `mdfluence`'s full-featured command line utility to automate the upload process for you.
 
 
 ## Installation
 
 ```bash
-# Install md2cf via pip
-pip install md2cf
+# Install mdfluence via pip
+pip install mdfluence
 
-# If you only need to use md2cf for uploading documents to Confluence,
+# If you only need to use mdfluence for uploading documents to Confluence,
 # it's recommended to use pipx:
-pipx install md2cf
+pipx install mdfluence
 ```
 
 ## Getting started
 
-To see all available options and parameters, run `md2cf --help`.
+To see all available options and parameters, run `mdfluence --help`.
 
 To upload a document, you need to provide at least the following five parameters:
 
@@ -36,13 +38,13 @@ To upload a document, you need to provide at least the following five parameters
 Example basic usage:
 
 ```bash
-md2cf --host 'https://confluence.example.com/rest/api' --username foo --password bar --space TEST document.md
+mdfluence --host 'https://confluence.example.com/rest/api' --username foo --password bar --space TEST document.md
 ```
 
 Or, if using a token:
 
 ```bash
-md2cf --host 'https://confluence.example.com/rest/api' --token '2104v3ryl0ngt0k3n720' --space TEST document.md
+mdfluence --host 'https://confluence.example.com/rest/api' --token '2104v3ryl0ngt0k3n720' --space TEST document.md
 ```
 
 > :warning: Avoid entering your password (or token) as a command line parameter, as this is [generally a bad practice](https://unix.stackexchange.com/q/78734). Instead, when running the script interactively, omit the `--password` parameter and securely enter the password when prompted.
@@ -59,9 +61,9 @@ You can also supply the hostname, username, password, token, and space as **envi
 
 If you are using self-signed certificates or want to **ignore SSL errors**, use the `--insecure` option.
 
-You can **upload multiple files** or entire folders. If you specify a folder, `md2cf` will traverse it recursively and upload all files that end in `.md`. For more information, see [Uploading Folders](#uploading-folders).
+You can **upload multiple files** or entire folders. If you specify a folder, `mdfluence` will traverse it recursively and upload all files that end in `.md`. For more information, see [Uploading Folders](#uploading-folders).
 
-If you would like to preview `md2cf`'s actions without modifying Confluence, use the `--dry-run` option. This will print a list of page data without making any changes.
+If you would like to preview `mdfluence`'s actions without modifying Confluence, use the `--dry-run` option. This will print a list of page data without making any changes.
 
 ## Page information arguments
 
@@ -182,9 +184,9 @@ By default, relative links that point to non-existent files (or files that are n
 
 ### Uploading Folders Recursively
 
-To help you mirror large documentation to Confluence, `md2cf` allows you to upload entire folders. When using this feature, `md2cf` will recursively traverse all subdirectories and upload any `.md` files it encounters.
+To help you mirror large documentation to Confluence, `mdfluence` allows you to upload entire folders. When using this feature, `mdfluence` will recursively traverse all subdirectories and upload any `.md` files it encounters.
 
-By default, `md2cf` will respect your `.gitignore` file and skip any files or folders it defines. If you prefer to upload everything in the folder, use the `--no-gitignore` option.
+By default, `mdfluence` will respect your `.gitignore` file and skip any files or folders it defines. If you prefer to upload everything in the folder, use the `--no-gitignore` option.
 
 Please note that Confluence can only nest pages under other pages. As a result, folders will be represented by empty pages with the same title as the folder in the final upload. You can customize this behavior using one of the three command line parameters defined in the next sections.
 
@@ -324,27 +326,27 @@ The `images/` and `data/` subtrees are entirely skipped because they contain no 
 
 ## Terminal output format
 
-By default, `md2cf` produces rich output with animated progress bars that are meant for human consumption. If the output is redirected to a file, the progress bars will not be displayed and only the final result will be written to the file. Error messages are always printed to standard error.
+By default, `mdfluence` produces rich output with animated progress bars that are meant for human consumption. If the output is redirected to a file, the progress bars will not be displayed and only the final result will be written to the file. Error messages are always printed to standard error.
 
-In addition to the default format, `md2cf` also supports two other output formats.
+In addition to the default format, `mdfluence` also supports two other output formats.
 
 ### JSON output
 
-When `--output json` is passed to `md2cf`, the JSON output for each page as returned by Confluence will be printed. Note that normal progress output will not be displayed.
+When `--output json` is passed to `mdfluence`, the JSON output for each page as returned by Confluence will be printed. Note that normal progress output will not be displayed.
 
 > :warning: Please note that JSON entries will only be printed for page creation/updates. They will not be printed for attachment creation/updates and will not be printed for second-pass updates for [relative links](#linking-to-other-documents-relative-links).
 
 
 ### Minimal output
 
-When passing the `--output minimal` option to `md2cf`, the tool will only print the final Confluence URL for each page, as in versions prior to `2.0.0`. The normal progress output will be omitted.
+When passing the `--output minimal` option to `mdfluence`, the tool will only print the final Confluence URL for each page, as in versions prior to `2.0.0`. The normal progress output will be omitted.
 
 > :warning: Note that URLs will only be printed for page creation/updates. They will not be printed for attachment creation/updates and will not be printed for second-pass updates for [relative links](#linking-to-other-documents-relative-links).
 
 
 ## Library usage
 
-`md2cf` can of course be used as a Python library. It exposes two useful modules: the renderer and the API wrapper.
+`mdfluence` can of course be used as a Python library. It exposes two useful modules: the renderer and the API wrapper.
 
 ### Renderer
 
@@ -353,7 +355,7 @@ output from a Markdown document.
 
 ```python
 import mistune
-from md2cf.confluence_renderer import ConfluenceRenderer
+from mdfluence.confluence_renderer import ConfluenceRenderer
 
 markdown_text = "# Page title\n\nInteresting *content* here!"
 
@@ -364,11 +366,11 @@ confluence_body = confluence_mistune(markdown_text)
 
 ### API
 
-md2cf embeds a teeny-tiny implementation of the Confluence Server REST
+mdfluence embeds a teeny-tiny implementation of the Confluence Server REST
 API that allows you to create, read, and update pages.
 
 ```python
-from md2cf.api import MinimalConfluence
+from mdfluence.api import MinimalConfluence
 
 confluence = MinimalConfluence(host='https://example.com/rest/api', username='foo', password='bar')
 

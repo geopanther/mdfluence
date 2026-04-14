@@ -1,4 +1,4 @@
-from md2cf.anchor import (
+from mdfluence.anchor import (
     _build_anchor_map,
     _extract_headings,
     _heading_to_markdown_anchor,

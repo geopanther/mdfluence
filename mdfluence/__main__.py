@@ -14,18 +14,18 @@ from requests import HTTPError
 from rich import box
 from rich_argparse import RichHelpFormatter
 
-import md2cf.document
-from md2cf import api
-from md2cf.anchor import rewrite_page_anchors
-from md2cf.console_output import (
+import mdfluence.document
+from mdfluence import api
+from mdfluence.anchor import rewrite_page_anchors
+from mdfluence.console_output import (
     console,
     error_console,
     json_output_console,
     minimal_output_console,
 )
-from md2cf.document import Page
-from md2cf.tui import Md2cfTUI
-from md2cf.upsert import upsert_attachment, upsert_page
+from mdfluence.document import Page
+from mdfluence.tui import Md2cfTUI
+from mdfluence.upsert import upsert_attachment, upsert_page
 
 
 def get_parser():
@@ -74,7 +74,7 @@ def get_parser():
         default=os.getenv("CONFLUENCE_SPACE"),
     )
 
-    output_group = parser.add_argument_group("md2cf output arguments")
+    output_group = parser.add_argument_group("mdfluence output arguments")
     output_group.add_argument(
         "--output",
         choices=["default", "minimal", "json"],
@@ -373,21 +373,21 @@ def main():
 
     preface_markup = ""
     if args.preface_markdown:
-        preface_markup = md2cf.document.parse_page([args.preface_markdown]).body
+        preface_markup = mdfluence.document.parse_page([args.preface_markdown]).body
     elif args.preface_file:
         # We don't use strip_header or remove_text_newlines here
         # since this is just a preface doc
-        preface_markup = md2cf.document.get_page_data_from_file_path(
+        preface_markup = mdfluence.document.get_page_data_from_file_path(
             args.preface_file
         ).body
 
     postface_markup = ""
     if args.postface_markdown:
-        postface_markup = md2cf.document.parse_page([args.postface_markdown]).body
+        postface_markup = mdfluence.document.parse_page([args.postface_markdown]).body
     elif args.postface_file:
         # We don't use strip_header or remove_text_newlines here
         # since this is just a postface doc
-        postface_markup = md2cf.document.get_page_data_from_file_path(
+        postface_markup = mdfluence.document.get_page_data_from_file_path(
             args.postface_file
         ).body
 
@@ -684,7 +684,7 @@ def collect_pages_to_upload(args):
     pages_to_upload: List[Page] = list()
     if not args.file_list:  # Uploading from standard input
         pages_to_upload.append(
-            md2cf.document.get_page_data_from_lines(
+            mdfluence.document.get_page_data_from_lines(
                 sys.stdin.readlines(),
                 strip_header=args.strip_top_header,
                 remove_text_newlines=args.remove_text_newlines,
@@ -704,7 +704,7 @@ def collect_pages_to_upload(args):
     else:
         for file_name in args.file_list:
             if file_name.is_dir():
-                pages_to_upload += md2cf.document.get_pages_from_directory(
+                pages_to_upload += mdfluence.document.get_pages_from_directory(
                     file_name,
                     collapse_single_pages=args.collapse_single_pages,
                     skip_empty=args.skip_empty,
@@ -723,7 +723,7 @@ def collect_pages_to_upload(args):
                         len(args.file_list) > 1 and args.enable_relative_links
                     )
                     pages_to_upload.append(
-                        md2cf.document.get_page_data_from_file_path(
+                        mdfluence.document.get_page_data_from_file_path(
                             file_name,
                             strip_header=args.strip_top_header,
                             remove_text_newlines=args.remove_text_newlines,

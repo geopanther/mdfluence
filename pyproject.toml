@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "mdfluence"
-version = "0.1.0"
+version = "0.2.0"
 description = "Convert and upload Markdown documents to Confluence (fork of md2cf by Jack Gaino)"
 readme = "README.md"
 license = "MIT"

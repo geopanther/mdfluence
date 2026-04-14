@@ -45,6 +45,7 @@ dev = [
     "bump2version",
     "build",
     "pre-commit",
+    "tox",
 ]
 test = [
     "pytest",
@@ -52,6 +53,18 @@ test = [
     "pyfakefs",
     "requests-mock",
 ]
+
+[tool.tox]
+envlist = ["py312", "py313"]
+
+[tool.tox.env_run_base]
+deps = [
+    "pytest",
+    "pytest-mock",
+    "pyfakefs",
+    "requests-mock",
+]
+commands = [["pytest"]]
 
 [tool.pytest.ini_options]
 filterwarnings = [

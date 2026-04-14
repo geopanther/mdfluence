@@ -26,9 +26,9 @@ repos:
       - id: flake8
   - repo: local
     hooks:
-      - id: pytest
-        name: pytest
-        entry: pytest
+      - id: tox
+        name: tox
+        entry: tox -e py312
         language: system
         always_run: true
         pass_filenames: false

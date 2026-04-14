@@ -22,7 +22,16 @@ pre-commit install
 
 ## Testing
 
+Tests run against Python 3.12 and 3.13 via [tox](https://tox.wiki/):
+
 ```bash
+# Run tests against all configured Python versions (requires local Python 3.13 installation)
+tox
+
+# Run against a single version
+tox -e py312
+
+# Run pytest directly (current venv only)
 pytest
 ```
 
@@ -30,7 +39,7 @@ Tests live in `test_package/`. The test suite uses pytest, pytest-mock, pyfakefs
 
 ## Linting
 
-Linting runs automatically on commit via [pre-commit](https://pre-commit.com/). To run manually:
+Linting runs automatically on `git push` via [pre-commit](https://pre-commit.com/) (configured with `pre-push` stage). To run manually:
 
 ```bash
 pre-commit run --all-files

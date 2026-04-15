@@ -26,6 +26,12 @@ repos:
       - id: flake8
   - repo: local
     hooks:
+      - id: revert-changelog-rc
+        name: revert-changelog-rc
+        entry: python scripts/revert_changelog_rc.py
+        language: python
+        files: CHANGELOG.md
+        stages: [pre-commit]
       - id: tox
         name: tox
         entry: tox -e py312

@@ -4,6 +4,20 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## Unreleased
+### Security
+- Switched deploy workflow to PyPI Trusted Publishers (OIDC) — eliminates long-lived API tokens
+- Enabled digital attestations for published packages (provenance verification)
+- Separated build and publish into isolated jobs to prevent credential leakage
+- Pinned all GitHub Actions to full commit SHAs to prevent tag-hijacking attacks
+- Added `pypi-publish-test` environment for TestPyPI deployments
+- Restricted workflow permissions to least privilege (`contents: read` default)
+
+### Changed
+- Renamed deploy workflow from `deploy.yml` to `deploy-test.yml`
+- Separated build, release, and publish into isolated workflow jobs
+- Replaced deprecated `actions/create-release` with `softprops/action-gh-release`
+
 ## 0.2.0 - 2026-04-14
 ### Changed
 - Migrated from `setup.py` to `pyproject.toml`

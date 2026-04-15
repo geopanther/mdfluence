@@ -43,7 +43,7 @@ jobs:
           VERSION="${GITHUB_REF_NAME#v}"
           echo "version=$VERSION" >> "$GITHUB_OUTPUT"
           if [[ "$VERSION" == *-rc* ]]; then
-            echo "changelog-version=Unreleased" >> "$GITHUB_OUTPUT"
+            echo "changelog-version=unreleased" >> "$GITHUB_OUTPUT"
             echo "is-prerelease=true" >> "$GITHUB_OUTPUT"
           else
             echo "changelog-version=$VERSION" >> "$GITHUB_OUTPUT"

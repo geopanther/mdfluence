@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Renamed deploy workflow from `deploy.yml` to `deploy-test.yml`
 - Separated build, release, and publish into isolated workflow jobs
 - Replaced deprecated `actions/create-release` with `softprops/action-gh-release`
+- Added `deploy-prod.yml` for production PyPI publishing (TestPyPI → PyPI with approval gate)
+- Moved release job from `deploy-test.yml` to `deploy-prod.yml`
 
 ## 0.2.0 - 2026-04-14
 ### Changed

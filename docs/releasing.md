@@ -50,7 +50,7 @@ The first commit will fail because the `revert-changelog-rc` pre-commit hook rev
 git add -A && git commit -m "chore: bump version to X.Y.Z-rc1"
 ```
 
-Push the branch, open a PR, and merge to `main`.
+Push the branch, open a PR, and wait for CI checks (`lint` and `test`) to pass before merging to `main`.
 
 ### 3. Tag and push
 
@@ -64,7 +64,7 @@ This triggers `deploy-test.yml`: **build → publish to TestPyPI**.
 
 ### 4. Approve the TestPyPI publish
 
-Go to the Actions tab, find the running workflow, and approve the `publish-testpypi` job when prompted by the `pypi-publish-test` environment gate.
+Go to the Actions tab, find the running workflow, and approve the `publish-testpypi` job when prompted by the `pypi-publish-test` environment gate. Wait for the publish job to complete successfully before proceeding.
 
 ### 5. Verify on TestPyPI
 
@@ -110,7 +110,7 @@ git add -A
 git commit -m "chore: release X.Y.Z"
 ```
 
-Push the branch, open a PR, and merge to `main`.
+Push the branch, open a PR, and wait for CI checks (`lint` and `test`) to pass before merging to `main`.
 
 ### 4. Tag and push
 
@@ -126,7 +126,7 @@ The GitHub Release is created automatically with notes extracted from `CHANGELOG
 
 ### 5. Approve the production publish
 
-Go to the Actions tab, find the running workflow, and approve the `publish-pypi` job when prompted.
+Go to the Actions tab, find the running workflow, and approve the `publish-pypi` job when prompted. Wait for the publish job to complete successfully before proceeding.
 
 ## Workflows
 

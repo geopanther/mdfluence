@@ -43,6 +43,12 @@ git add -A
 git commit -m "chore: bump version to X.Y.Z-rc1"
 ```
 
+The first commit will fail because the `revert-changelog-rc` pre-commit hook reverts the rc heading back to `## Unreleased` and exits with code 1. This is expected — just re-run the commit:
+
+```bash
+git add -A && git commit -m "chore: bump version to X.Y.Z-rc1"
+```
+
 Push the branch, open a PR, and merge to `main`.
 
 ### 3. Tag and push

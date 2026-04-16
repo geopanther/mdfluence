@@ -28,9 +28,10 @@ Version bumping is managed by [bump2version](https://github.com/c4urself/bump2ve
 
 Use this to test a release on TestPyPI before publishing to production.
 
-### 1. Bump to rc version
+### 1. Create a branch and bump to rc version
 
 ```bash
+git checkout -b chore/bump-X.Y.Z-rc1
 bump2version --new-version X.Y.Z-rc1 patch
 ```
 
@@ -89,9 +90,10 @@ This increments `rc1` → `rc2`, etc. Commit, merge, tag, and push as above.
 
 ## Final release
 
-### 1. Bump to final version
+### 1. Create a branch and bump to final version
 
 ```bash
+git checkout -b chore/release-X.Y.Z
 bump2version release
 ```
 

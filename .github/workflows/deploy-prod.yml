@@ -49,27 +49,8 @@ jobs:
         with:
           body: ${{ steps.get-release-notes.outputs.release-notes }}
 
-  publish-testpypi:
-    needs: release
-    runs-on: ubuntu-latest
-    environment: pypi-publish-test
-    permissions:
-      id-token: write
-      attestations: write
-    steps:
-      - name: Download distribution artifacts
-        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4
-        with:
-          name: dist
-          path: dist/
-      - name: Publish package distributions to TestPyPI
-        uses: pypa/gh-action-pypi-publish@cef221092ed1bacb1cc03d23a2d87d1d172e277b # release/v1
-        with:
-          repository-url: https://test.pypi.org/legacy/
-          attestations: true
-
   publish-pypi:
-    needs: publish-testpypi
+    needs: release
     runs-on: ubuntu-latest
     environment: pypi-publish-prod
     permissions:

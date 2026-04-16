@@ -45,25 +45,9 @@ Linting runs automatically on `git push` via [pre-commit](https://pre-commit.com
 pre-commit run --all-files
 ```
 
-## Version bumping
+## Releasing
 
-Version management uses [bump2version](https://github.com/c4urself/bump2version). It updates `pyproject.toml`, `mdfluence/__init__.py`, and `CHANGELOG.md` in one step:
-
-```bash
-bumpversion patch   # 0.1.0 → 0.1.1
-bumpversion minor   # 0.1.0 → 0.2.0
-bumpversion major   # 0.1.0 → 1.0.0
-```
-
-After bumping, add a new `## Unreleased` section to `CHANGELOG.md`, then commit and tag:
-
-```bash
-git commit -am "chore: bump version to X.Y.Z"
-git tag vX.Y.Z
-git push origin main --tags
-```
-
-Pushing a `v*` tag triggers the deploy workflow which builds and publishes to PyPI.
+See [docs/releasing.md](docs/releasing.md) for the full release process, including version bumping, release candidates, and production publishing.
 
 ## Project structure
 

@@ -10,15 +10,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enabled digital attestations for published packages (provenance verification)
 - Separated build and publish into isolated jobs to prevent credential leakage
 - Pinned all GitHub Actions to full commit SHAs to prevent tag-hijacking attacks
-- Added `pypi-publish-test` environment for TestPyPI deployments
+- Added `pypi-publish-test` environment for TestPyPI deployments (with approval gate)
+- Added `pypi-publish-prod` environment for PyPI deployments (with approval gate)
 - Restricted workflow permissions to least privilege (`contents: read` default)
 
 ### Changed
 - Renamed deploy workflow from `deploy.yml` to `deploy-test.yml`
 - Separated build, release, and publish into isolated workflow jobs
 - Replaced deprecated `actions/create-release` with `softprops/action-gh-release`
-- Added `deploy-prod.yml` for production PyPI publishing (TestPyPI → PyPI with approval gate)
-- Moved release job from `deploy-test.yml` to `deploy-prod.yml`
+- Added `deploy-prod.yml` for production PyPI publishing with GitHub Release creation
+
+### Added
+- Added `docs/releasing.md` documenting the release process
 
 ## 0.2.0 - 2026-04-14
 ### Changed

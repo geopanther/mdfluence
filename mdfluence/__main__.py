@@ -451,7 +451,8 @@ def main():
                             )
                         else:
                             tui.set_item_finished_text(
-                                attachment_identifier, "[yellow]Skipped (dry run)"
+                                attachment_identifier,
+                                rich.text.Text.from_markup("[yellow]Skipped (dry run)"),
                             )
                         tui.set_item_progress_label(attachment_identifier, "")
                         tui.tick_item_progress(attachment_identifier)
@@ -596,7 +597,7 @@ def update_pages_with_relative_links(
     args, confluence, pages_to_upload, path_to_page, tui
 ):
     something_went_wrong = False
-    error = ""
+    error: Exception = Exception()
     for page in pages_to_upload:
         if page.file_path is None:
             # Skip pages without a file_path

@@ -363,7 +363,7 @@ from mdfluence.confluence_renderer import ConfluenceRenderer
 
 markdown_text = "# Page title\n\nInteresting *content* here!"
 
-renderer = ConfluenceRenderer(use_xhtml=True)
+renderer = ConfluenceRenderer()
 confluence_mistune = mistune.Markdown(renderer=renderer)
 confluence_body = confluence_mistune(markdown_text)
 ```

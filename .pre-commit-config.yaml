@@ -36,6 +36,7 @@ repos:
         additional_dependencies:
           - prettier@3.6.2
         files: \.(json|md|yaml|yml)$
+        exclude: test_package/functional/
 
   - repo: https://github.com/PyCQA/bandit
     rev: 1.9.4

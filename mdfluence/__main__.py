@@ -278,8 +278,9 @@ def get_parser():
 
 def print_missing_parameter(parameter_name: str):
     error_console.log(
-        ":x: Missing required parameter: {}\n"
-        "Use {} --help to get help.".format(parameter_name, sys.argv[0])
+        ":x: Missing required parameter: {}\nUse {} --help to get help.".format(
+            parameter_name, sys.argv[0]
+        )
     )
 
 
@@ -459,9 +460,9 @@ def main():
                 if page.file_path is not None and args.enable_relative_links:
                     # Skip pages without a file_path
                     # (e.g. section pages representing directories)
-                    map_document_path_to_confluence_page[
-                        page.file_path.resolve()
-                    ] = final_page
+                    map_document_path_to_confluence_page[page.file_path.resolve()] = (
+                        final_page
+                    )
             except HTTPError as e:
                 if args.debug:
                     console.print_exception(show_locals=True)

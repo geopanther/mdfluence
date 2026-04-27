@@ -56,9 +56,9 @@ class Md2cfTUI(object):
                 )
                 attachment_progress.add_task(description="", total=1, start=False)
                 progress_table.add_row(attachment_progress)
-                self.title_to_progress[
-                    f"{page.title} {attachment}"
-                ] = attachment_progress
+                self.title_to_progress[f"{page.title} {attachment}"] = (
+                    attachment_progress
+                )
         self.overall_progress = rich.progress.Progress(console=console)
         self.overall_progress.add_task(
             "Total progress",

@@ -23,7 +23,7 @@ class UpsertResult(NamedTuple):
 
 # Adapted from https://stackoverflow.com/a/3431838
 def get_file_sha1(file_path: Path):
-    hash_sha1 = hashlib.sha1()
+    hash_sha1 = hashlib.sha1(usedforsecurity=False)
     with open(file_path, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
             hash_sha1.update(chunk)

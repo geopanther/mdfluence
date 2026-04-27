@@ -45,7 +45,7 @@ class Page(object):
         self.labels = labels
 
     def get_content_hash(self):
-        return hashlib.sha1(self.body.encode()).hexdigest()
+        return hashlib.sha1(self.body.encode(), usedforsecurity=False).hexdigest()
 
     def __repr__(self):
         return "Page({})".format(
@@ -289,7 +289,7 @@ def get_page_data_from_lines(
             page.labels = [str(label) for label in frontmatter["labels"]]
         else:
             raise TypeError(
-                "the labels section in the frontmatter " "must be a list of strings"
+                "the labels section in the frontmatter must be a list of strings"
             )
     return page
 

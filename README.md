@@ -10,7 +10,6 @@
 - **Talk to the Confluence API:** `mdfluence` also features an embedded micro-implementation of the [Confluence Server REST API](https://developer.atlassian.com/server/confluence/confluence-server-rest-api/) with basic support for creating and updating pages and attachments.
 - **Automate the upload process:** You can use `mdfluence`'s full-featured command line utility to automate the upload process for you.
 
-
 ## Installation
 
 ```bash
@@ -30,8 +29,8 @@ To upload a document, you need to provide at least the following five parameters
 
 - The **URL** of your Confluence instance, including the path to the REST API (e.g., `http://confluence.example.com/rest/api`)
 - Either:
-    - The **username** and **password** to log in to the instance
-    - A **personal access token**
+  - The **username** and **password** to log in to the instance
+  - A **personal access token**
 - The **space** in which to publish the page
 - The **files or directories** to be uploaded. If none are specified, the contents will be read from standard input.
 
@@ -70,16 +69,18 @@ If you would like to preview `mdfluence`'s actions without modifying Confluence,
 ### Page title
 
 The title of the page can be sourced from multiple places, in the following order of priority:
-* The `--title` command-line parameter
-* A `title` entry in the document's front matter, which is a YAML block delimited by `---` lines at the top of the file:
+
+- The `--title` command-line parameter
+- A `title` entry in the document's front matter, which is a YAML block delimited by `---` lines at the top of the file:
 
   ```yaml
   ---
   title: This is a title
   ---
   ```
-* The first top-level header found in the document (i.e., the first `#` header)
-* The filename, if there are no top-level headers.
+
+- The first top-level header found in the document (i.e., the first `#` header)
+- The filename, if there are no top-level headers.
 
 Note that if you are reading from standard input, you must either specify the title through the command line or include a title as a header or in the front matter within the content.
 
@@ -90,7 +91,6 @@ When uploading entire folders, consider adding a prefix to each page title to pr
 ### Removing extra newlines
 
 If your document uses single newlines to break lines (for example, if it was typeset with a fixed column width), Confluence Cloud might preserve those newlines, resulting in a document that's difficult to read. To fix this, use the `--remove-text-newlines` parameter, which replaces every newline within a paragraph with a space.
-
 
 <details>
 <summary>Example</summary>
@@ -112,6 +112,7 @@ This is a document with hardcoded newlines in its paragraphs.
 
 It's not that nice to read.
 ```
+
 </details>
 
 ### Adding a preface and/or postface
@@ -133,8 +134,8 @@ To add labels to your page, include a `labels` entry in your document's front ma
 ```yaml
 ---
 labels:
-- first label
-- second label
+  - first label
+  - second label
 ---
 # Rest of the Markdown document
 ```
@@ -171,6 +172,7 @@ Reference to a section from another file is possible using Markdown fragment lin
 ` [link](./file.md#section-name) // note the dash!`
 
 In file.md:
+
 ```
 ## ...
 ## section name
@@ -231,6 +233,7 @@ folder1/
   documentB
 other-document
 ```
+
 </details>
 
 #### Dealing with empty folders
@@ -263,6 +266,7 @@ folderA/
   folderC/
     lonely-document
 ```
+
 </details>
 
 Alternatively, you can specify `--collapse-empty` to merge empty folders together.
@@ -293,6 +297,7 @@ folderA/
   folderB/folderC/
     lonely-document
 ```
+
 </details>
 
 #### Skipping subtrees without markdown
@@ -322,6 +327,7 @@ docs/
 ```
 
 The `images/` and `data/` subtrees are entirely skipped because they contain no markdown files.
+
 </details>
 
 ## Terminal output format
@@ -336,13 +342,11 @@ When `--output json` is passed to `mdfluence`, the JSON output for each page as 
 
 > :warning: Please note that JSON entries will only be printed for page creation/updates. They will not be printed for attachment creation/updates and will not be printed for second-pass updates for [relative links](#linking-to-other-documents-relative-links).
 
-
 ### Minimal output
 
 When passing the `--output minimal` option to `mdfluence`, the tool will only print the final Confluence URL for each page, as in versions prior to `2.0.0`. The normal progress output will be omitted.
 
 > :warning: Note that URLs will only be printed for page creation/updates. They will not be printed for attachment creation/updates and will not be printed for second-pass updates for [relative links](#linking-to-other-documents-relative-links).
-
 
 ## Library usage
 

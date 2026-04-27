@@ -169,10 +169,10 @@ uv pip install mdfluence==<VERSION>
 
 ## Workflows
 
-| Workflow          | Trigger                     | Pipeline               | Environment         |
-| ----------------- | --------------------------- | ---------------------- | ------------------- |
-| `deploy-test.yml` | Any `v*` tag                | build → TestPyPI       | `pypi-publish-test` |
-| `deploy-prod.yml` | `vX.Y.Z` tags (no rc)      | build → release → PyPI | `pypi-publish-prod` |
+| Workflow          | Trigger               | Pipeline               | Environment         |
+| ----------------- | --------------------- | ---------------------- | ------------------- |
+| `deploy-test.yml` | Any `v*` tag          | build → TestPyPI       | `pypi-publish-test` |
+| `deploy-prod.yml` | `vX.Y.Z` tags (no rc) | build → release → PyPI | `pypi-publish-prod` |
 
 ## Security
 

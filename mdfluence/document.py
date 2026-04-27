@@ -301,13 +301,15 @@ def parse_page(
     enable_relative_links: bool = False,
 ) -> Page:
     renderer = ConfluenceRenderer(
-        use_xhtml=True,
         strip_header=strip_header,
         remove_text_newlines=remove_text_newlines,
         enable_relative_links=enable_relative_links,
     )
     confluence_mistune = mistune.Markdown(renderer=renderer)
-    confluence_content = confluence_mistune("".join(markdown_lines))
+    confluence_result = confluence_mistune("".join(markdown_lines))
+    if not isinstance(confluence_result, str):
+        raise TypeError("Expected string output from Markdown renderer")
+    confluence_content = confluence_result
 
     page = Page(
         title=renderer.title,

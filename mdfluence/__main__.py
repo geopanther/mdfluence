@@ -278,8 +278,9 @@ def get_parser():
 
 def print_missing_parameter(parameter_name: str):
     error_console.log(
-        ":x: Missing required parameter: {}\n"
-        "Use {} --help to get help.".format(parameter_name, sys.argv[0])
+        ":x: Missing required parameter: {}\nUse {} --help to get help.".format(
+            parameter_name, sys.argv[0]
+        )
     )
 
 
@@ -450,7 +451,8 @@ def main():
                             )
                         else:
                             tui.set_item_finished_text(
-                                attachment_identifier, "[yellow]Skipped (dry run)"
+                                attachment_identifier,
+                                rich.text.Text.from_markup("[yellow]Skipped (dry run)"),
                             )
                         tui.set_item_progress_label(attachment_identifier, "")
                         tui.tick_item_progress(attachment_identifier)
@@ -459,9 +461,9 @@ def main():
                 if page.file_path is not None and args.enable_relative_links:
                     # Skip pages without a file_path
                     # (e.g. section pages representing directories)
-                    map_document_path_to_confluence_page[
-                        page.file_path.resolve()
-                    ] = final_page
+                    map_document_path_to_confluence_page[page.file_path.resolve()] = (
+                        final_page
+                    )
             except HTTPError as e:
                 if args.debug:
                     console.print_exception(show_locals=True)
@@ -595,7 +597,7 @@ def update_pages_with_relative_links(
     args, confluence, pages_to_upload, path_to_page, tui
 ):
     something_went_wrong = False
-    error = ""
+    error: Exception = Exception()
     for page in pages_to_upload:
         if page.file_path is None:
             # Skip pages without a file_path

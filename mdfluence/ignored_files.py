@@ -1,6 +1,7 @@
 """
 Allow checking files for ignored status in gitignore files in the repo.
 """
+
 from pathlib import Path
 from typing import List
 

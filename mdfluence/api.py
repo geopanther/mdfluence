@@ -2,7 +2,6 @@ from urllib.parse import urljoin
 
 import requests
 import requests.adapters
-import requests.packages
 import urllib3
 
 
@@ -59,9 +58,7 @@ class MinimalConfluence:
         self.api.mount("https://", adapter)
 
         if not verify:
-            requests.packages.urllib3.disable_warnings(
-                requests.packages.urllib3.exceptions.InsecureRequestWarning
-            )
+            urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
     def _request(self, method, path, **kwargs):
         r = self.api.request(method, urljoin(self.host, path), **kwargs)

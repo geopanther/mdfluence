@@ -23,7 +23,7 @@ class UpsertResult(NamedTuple):
 
 # Adapted from https://stackoverflow.com/a/3431838
 def get_file_sha1(file_path: Path):
-    hash_sha1 = hashlib.sha1()
+    hash_sha1 = hashlib.sha1(usedforsecurity=False)
     with open(file_path, "rb") as f:
         for chunk in iter(lambda: f.read(4096), b""):
             hash_sha1.update(chunk)
@@ -177,7 +177,7 @@ def upsert_attachment(
 
     existing_attachment = confluence.get_attachment(existing_page, attachment_path.name)
 
-    action = None
+    action: UpsertAction | None = None
     if existing_attachment is None:
         # print(f"Uploading file: {attachment_path}")
         action = UpsertAction.CREATED
@@ -207,4 +207,6 @@ def upsert_attachment(
                 )
             action = UpsertAction.UPDATED
 
+    if action is None:
+        raise RuntimeError("action must be set before returning")
     return UpsertResult(action=action, response=existing_attachment)

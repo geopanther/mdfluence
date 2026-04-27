@@ -116,10 +116,10 @@ class TestBuildAnchorMap:
 
     def test_long_title_with_hyphens(self):
         body = "<h2>The Concept</h2>"
-        title = "SSH Reverse Tunnel Setup Guide" " - Embedded Hardware to AWS EC2"
+        title = "SSH Reverse Tunnel Setup Guide - Embedded Hardware to AWS EC2"
         result = _build_anchor_map(body, title)
         expected_anchor = (
-            "SSHReverseTunnelSetupGuideEmbeddedHardwaretoAWSEC2" "-TheConcept"
+            "SSHReverseTunnelSetupGuideEmbeddedHardwaretoAWSEC2-TheConcept"
         )
         assert result == {"the-concept": expected_anchor}
 
@@ -179,7 +179,7 @@ class TestRewritePageAnchors:
         assert result == body
 
     def test_non_matching_fragment_left_untouched(self):
-        body = "<h2>Real Heading</h2>" '<p><a href="#nonexistent">link</a></p>'
+        body = '<h2>Real Heading</h2><p><a href="#nonexistent">link</a></p>'
         result = rewrite_page_anchors(body, "Page")
         # The #nonexistent anchor doesn't match any heading, left as-is
         assert 'href="#nonexistent"' in result
@@ -189,7 +189,7 @@ class TestRewritePageAnchors:
         )  # not referenced, so not in body
 
     def test_with_prefix_in_title(self):
-        body = "<h2>Setup</h2>" '<a href="#setup">go</a>'
+        body = '<h2>Setup</h2><a href="#setup">go</a>'
         result = rewrite_page_anchors(body, "PREFIX - My Page")
         assert 'href="#PREFIXMyPage-Setup"' in result
 

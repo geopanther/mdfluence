@@ -205,8 +205,9 @@ def test_renderer_header_only_sets_first_title():
 def test_renderer_image_external():
     test_image_src = "http://example.com/image.jpg"
     test_image_markup = (
-        '<ac:image ac:alt=""><ri:url ri:value="{}"></ri:url>\n'
-        "</ac:image>\n".format(test_image_src)
+        '<ac:image ac:alt=""><ri:url ri:value="{}"></ri:url>\n</ac:image>\n'.format(
+            test_image_src
+        )
     )
 
     renderer = ConfluenceRenderer()

@@ -20,10 +20,10 @@ class Page(object):
         content_type: Optional[str] = "page",
         attachments: Optional[List[Path]] = None,
         file_path: Optional[Path] = None,
-        page_id: str = None,
-        parent_id: str = None,
-        parent_title: str = None,
-        space: str = None,
+        page_id: Optional[str] = None,
+        parent_id: Optional[str] = None,
+        parent_title: Optional[str] = None,
+        space: Optional[str] = None,
         labels: Optional[List[str]] = None,
         relative_links: Optional[List[RelativeLink]] = None,
     ):
@@ -45,7 +45,7 @@ class Page(object):
         self.labels = labels
 
     def get_content_hash(self):
-        return hashlib.sha1(self.body.encode()).hexdigest()
+        return hashlib.sha1(self.body.encode(), usedforsecurity=False).hexdigest()
 
     def __repr__(self):
         return "Page({})".format(
@@ -289,7 +289,7 @@ def get_page_data_from_lines(
             page.labels = [str(label) for label in frontmatter["labels"]]
         else:
             raise TypeError(
-                "the labels section in the frontmatter " "must be a list of strings"
+                "the labels section in the frontmatter must be a list of strings"
             )
     return page
 

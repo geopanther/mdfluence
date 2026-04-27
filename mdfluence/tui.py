@@ -16,22 +16,28 @@ class Md2cfTUI(object):
         progress_table.row_styles = ["dim", ""]
         title_to_tree: Dict[str, rich.tree.Tree] = dict()
         self.title_to_progress: Dict[str, rich.progress.Progress] = dict()
+        self._spinner_columns: Dict[str, rich.progress.SpinnerColumn] = dict()
+        self._text_columns: Dict[str, rich.progress.TextColumn] = dict()
         for page in pages_to_upload:
             if page.file_path is None and len(pages_to_upload) > 1:
                 pretty_title = f":open_file_folder: {page.title}"
             else:
                 pretty_title = f":page_facing_up: {page.title}"
 
+            spinner_col = rich.progress.SpinnerColumn(finished_text="")
+            text_col = rich.progress.TextColumn("")
             page_progress = rich.progress.Progress(
                 rich.progress.BarColumn(),
-                rich.progress.SpinnerColumn(finished_text=""),
-                rich.progress.TextColumn(""),
+                spinner_col,
+                text_col,
                 console=console,
             )
             page_progress.add_task(
                 description="", total=1 + len(page.attachments), start=False
             )
             self.title_to_progress[page.title] = page_progress
+            self._spinner_columns[page.title] = spinner_col
+            self._text_columns[page.title] = text_col
 
             if page.parent_title:
                 try:
@@ -48,17 +54,20 @@ class Md2cfTUI(object):
 
             for attachment in page.attachments:
                 page_node.add(f":paperclip: {attachment}", style="dim")
+                att_spinner_col = rich.progress.SpinnerColumn(finished_text="done")
+                att_text_col = rich.progress.TextColumn("")
                 attachment_progress = rich.progress.Progress(
                     rich.progress.BarColumn(),
-                    rich.progress.SpinnerColumn(finished_text="done"),
-                    rich.progress.TextColumn(""),
+                    att_spinner_col,
+                    att_text_col,
                     console=console,
                 )
                 attachment_progress.add_task(description="", total=1, start=False)
                 progress_table.add_row(attachment_progress)
-                self.title_to_progress[
-                    f"{page.title} {attachment}"
-                ] = attachment_progress
+                att_key = f"{page.title} {attachment}"
+                self.title_to_progress[att_key] = attachment_progress
+                self._spinner_columns[att_key] = att_spinner_col
+                self._text_columns[att_key] = att_text_col
         self.overall_progress = rich.progress.Progress(console=console)
         self.overall_progress.add_task(
             "Total progress",
@@ -87,11 +96,13 @@ class Md2cfTUI(object):
     ):
         self.live.__exit__(*args, **kwargs)
 
-    def set_item_progress_label(self, item_name, label):
-        self.title_to_progress[item_name].columns[2].text_format = label
+    def set_item_progress_label(self, item_name: str, label: str) -> None:
+        self._text_columns[item_name].text_format = label
 
-    def set_item_finished_text(self, item_name, finished_text):
-        self.title_to_progress[item_name].columns[1].finished_text = finished_text
+    def set_item_finished_text(
+        self, item_name: str, finished_text: rich.text.Text
+    ) -> None:
+        self._spinner_columns[item_name].finished_text = finished_text
 
     def set_item_finished_text_from_result(self, item_name, upsert_result):
         self.set_item_finished_text(

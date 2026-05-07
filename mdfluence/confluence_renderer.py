@@ -75,11 +75,13 @@ class ConfluenceRenderer(mistune.HTMLRenderer):
         self.enable_relative_links = enable_relative_links
         self.relative_links: List[RelativeLink] = list()
         self._has_math = False
+        self._task_id = 0
 
     def reinit(self):
         self.attachments = list()
         self.relative_links = list()
         self._has_math = False
+        self._task_id = 0
         self.title = None
 
     def heading(self, text, level, **attrs):
@@ -163,19 +165,27 @@ class ConfluenceRenderer(mistune.HTMLRenderer):
         return root_element.render()
 
     def task_list_item(self, text, checked=False):
-        checkbox = (
-            '<input class="task-list-item-checkbox" type="checkbox" disabled="disabled"'
-        )
-        if checked:
-            checkbox += ' checked="checked"'
-        checkbox += "/>"
+        self._task_id += 1
+        status = "complete" if checked else "incomplete"
+        # Strip wrapping <p> tags for clean task body
+        if text.startswith("<p>") and text.rstrip().endswith("</p>"):
+            text = text[3:].rstrip()[:-4]
+        task = ConfluenceTag("task", namespace="ac")
+        task_id = ConfluenceTag("task-id", namespace="ac")
+        task_id.text = str(self._task_id)
+        task_status = ConfluenceTag("task-status", namespace="ac")
+        task_status.text = status
+        task_body = ConfluenceTag("task-body", namespace="ac")
+        task_body.text = text
+        task.append(task_id)
+        task.append(task_status)
+        task.append(task_body)
+        return task.render()
 
-        if text.startswith("<p>"):
-            text = text.replace("<p>", "<p>" + checkbox, 1)
-        else:
-            text = checkbox + text
-
-        return '<li class="task-list-item">' + text + "</li>\n"
+    def list(self, text, ordered, **attrs):
+        if "<ac:task>" in text:
+            return "<ac:task-list>\n" + text + "</ac:task-list>\n"
+        return super().list(text, ordered, **attrs)
 
     def _confluence_anchor(self, name):
         macro = self.structured_macro("anchor")

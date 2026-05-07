@@ -22,7 +22,7 @@
 | Insert           | `^^text^^`                            | —                                                               |
 | Superscript      | `x^2^`                                | —                                                               |
 | Subscript        | `H~2~O`                               | —                                                               |
-| Task lists       | `- [x] done`                          | Rendered with XHTML-compliant attributes                        |
+| Task lists       | `- [x] done`                          | Rendered as native Confluence task list                         |
 | Definition lists | `Term` / `:  Definition`              | —                                                               |
 | Abbreviations    | `*[HTML]: Hyper Text Markup Language` | ⚠️ `<abbr>` tags stripped by Confluence; degrades to plain text |
 | Footnotes        | `text[^1]` / `[^1]: note`             | Uses Confluence anchor macros for navigation                    |

@@ -68,7 +68,7 @@ from mdfluence.document import parse_page
         ),
         (
             "- [ ] todo\n- [x] done\n",
-            "task-list-item-checkbox",
+            "ac:task-list",
             "task_lists",
         ),
         (

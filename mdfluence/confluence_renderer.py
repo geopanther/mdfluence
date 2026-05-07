@@ -74,10 +74,12 @@ class ConfluenceRenderer(mistune.HTMLRenderer):
         self.title = None
         self.enable_relative_links = enable_relative_links
         self.relative_links: List[RelativeLink] = list()
+        self._has_math = False
 
     def reinit(self):
         self.attachments = list()
         self.relative_links = list()
+        self._has_math = False
         self.title = None
 
     def heading(self, text, level, **attrs):
@@ -159,3 +161,67 @@ class ConfluenceRenderer(mistune.HTMLRenderer):
         root_element.append(url_tag)
 
         return root_element.render()
+
+    def task_list_item(self, text, checked=False):
+        checkbox = (
+            '<input class="task-list-item-checkbox" type="checkbox" disabled="disabled"'
+        )
+        if checked:
+            checkbox += ' checked="checked"'
+        checkbox += "/>"
+
+        if text.startswith("<p>"):
+            text = text.replace("<p>", "<p>" + checkbox, 1)
+        else:
+            text = checkbox + text
+
+        return '<li class="task-list-item">' + text + "</li>\n"
+
+    def _confluence_anchor(self, name):
+        macro = self.structured_macro("anchor")
+        macro.append(self.parameter("", name))
+        return macro.render()
+
+    def _confluence_anchor_link(self, anchor_name, text):
+        link_tag = ConfluenceTag("link", attrib={"anchor": anchor_name})
+        body_tag = ConfluenceTag("plain-text-link-body", cdata=True)
+        body_tag.text = text
+        link_tag.append(body_tag)
+        return link_tag.render()
+
+    def footnote_ref(self, key, index):
+        i = str(index)
+        anchor = self._confluence_anchor("fnref-" + i)
+        link = self._confluence_anchor_link("fn-" + i, i)
+        return anchor + "<sup>" + link + "</sup>"
+
+    def footnote_item(self, text, key, index):
+        i = str(index)
+        anchor = self._confluence_anchor("fn-" + i)
+        back = self._confluence_anchor_link("fnref-" + i, "\u21a9")
+        text = text.rstrip()
+        if text.endswith("</p>"):
+            text = text[:-4] + back + "</p>"
+        else:
+            text = text + "\n" + back
+        return "<li>" + anchor + text + "</li>\n"
+
+    def footnotes(self, text):
+        return '<section class="footnotes">\n<ol>\n' + text + "</ol>\n</section>\n"
+
+    def _enable_latex_math_macro(self):
+        macro = self.structured_macro("enablelatexmath")
+        macro.append(self.parameter("hide", "true"))
+        return macro.render()
+
+    def inline_math(self, text):
+        self._has_math = True
+        macro = self.structured_macro("mathinline")
+        macro.append(self.parameter("body", text))
+        return macro.render().rstrip("\n")
+
+    def block_math(self, text):
+        self._has_math = True
+        root = self.structured_macro("mathblock")
+        root.append(self.plain_text_body(text))
+        return root.render()

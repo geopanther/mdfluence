@@ -5,6 +5,21 @@ from typing import Any, Dict, List, Optional
 
 import chardet
 import mistune
+from mistune.plugins.abbr import abbr
+from mistune.plugins.def_list import def_list
+from mistune.plugins.footnotes import footnotes
+from mistune.plugins.formatting import (
+    insert,
+    mark,
+    strikethrough,
+    subscript,
+    superscript,
+)
+from mistune.plugins.math import math
+from mistune.plugins.spoiler import spoiler
+from mistune.plugins.table import table
+from mistune.plugins.task_lists import task_lists
+from mistune.plugins.url import url
 import yaml
 from yaml.parser import ParserError
 
@@ -306,10 +321,29 @@ def parse_page(
         enable_relative_links=enable_relative_links,
     )
     confluence_mistune = mistune.Markdown(renderer=renderer)
+    for plugin in [
+        abbr,
+        def_list,
+        footnotes,
+        insert,
+        mark,
+        math,
+        spoiler,
+        strikethrough,
+        subscript,
+        superscript,
+        table,
+        task_lists,
+        url,
+    ]:
+        plugin(confluence_mistune)
     confluence_result = confluence_mistune("".join(markdown_lines))
     if not isinstance(confluence_result, str):
         raise TypeError("Expected string output from Markdown renderer")
     confluence_content = confluence_result
+
+    if renderer._has_math:
+        confluence_content = renderer._enable_latex_math_macro() + confluence_content
 
     page = Page(
         title=renderer.title,

@@ -60,35 +60,36 @@ class ConfluenceTag(object):
         self.children.append(child)
 
 
-class ConfluenceRenderer(mistune.Renderer):
+class ConfluenceRenderer(mistune.HTMLRenderer):
     def __init__(
         self,
         strip_header=False,
         remove_text_newlines=False,
         enable_relative_links=False,
-        **kwargs,
     ):
-        super().__init__(**kwargs)
+        super().__init__(escape=False)
         self.strip_header = strip_header
         self.remove_text_newlines = remove_text_newlines
         self.attachments = list()
         self.title = None
         self.enable_relative_links = enable_relative_links
         self.relative_links: List[RelativeLink] = list()
+        self._has_math = False
 
     def reinit(self):
         self.attachments = list()
         self.relative_links = list()
+        self._has_math = False
         self.title = None
 
-    def header(self, text, level, raw=None):
+    def heading(self, text, level, **attrs):
         if self.title is None and level == 1:
             self.title = text
             # Don't duplicate page title as a header
             if self.strip_header:
                 return ""
 
-        return super(ConfluenceRenderer, self).header(text, level, raw=raw)
+        return super().heading(text, level, **attrs)
 
     def structured_macro(self, name):
         return ConfluenceTag("structured-macro", attrib={"name": name})
@@ -103,12 +104,12 @@ class ConfluenceRenderer(mistune.Renderer):
         body_tag.text = text
         return body_tag
 
-    def link(self, link, title, text):
-        parsed_link = urlparse(link)
+    def link(self, text, url, title=None):
+        parsed_url = urlparse(url)
         if (
             self.enable_relative_links
-            and (not parsed_link.scheme and not parsed_link.netloc)
-            and parsed_link.path
+            and (not parsed_url.scheme and not parsed_url.netloc)
+            and parsed_url.path
         ):
             # relative link
             replacement_link = f"md2cf-internal-link-{uuid.uuid4()}"
@@ -116,15 +117,15 @@ class ConfluenceRenderer(mistune.Renderer):
                 RelativeLink(
                     # make sure to unquote the url as relative paths
                     # might have escape sequences
-                    path=unquote(parsed_link.path),
+                    path=unquote(parsed_url.path),
                     replacement=replacement_link,
-                    fragment=parsed_link.fragment,
-                    original=link,
-                    escaped_original=mistune.escape_link(link),
+                    fragment=parsed_url.fragment,
+                    original=url,
+                    escaped_original=mistune.escape_url(url),
                 )
             )
-            link = replacement_link
-        return super(ConfluenceRenderer, self).link(link, title, text)
+            url = replacement_link
+        return super().link(text, url, title)
 
     def text(self, text):
         if self.remove_text_newlines:
@@ -132,31 +133,95 @@ class ConfluenceRenderer(mistune.Renderer):
 
         return super().text(text)
 
-    def block_code(self, code, lang=None):
+    def block_code(self, code, info=None):
         root_element = self.structured_macro("code")
-        if lang is not None:
-            lang_parameter = self.parameter(name="language", value=lang)
+        if info is not None:
+            lang_parameter = self.parameter(name="language", value=info)
             root_element.append(lang_parameter)
         root_element.append(self.parameter(name="linenumbers", value="true"))
         root_element.append(self.plain_text_body(code))
         return root_element.render()
 
-    def image(self, src, title, text):
+    def image(self, text, url, title=None):
         attributes = {"alt": text}
         if title:
             attributes["title"] = title
 
         root_element = ConfluenceTag(name="image", attrib=attributes)
-        parsed_source = urlparse(src)
+        parsed_source = urlparse(url)
         if not parsed_source.netloc:
             # Local file, requires upload
-            basename = Path(src).name
+            basename = Path(url).name
             url_tag = ConfluenceTag(
                 "attachment", attrib={"filename": basename}, namespace="ri"
             )
-            self.attachments.append(src)
+            self.attachments.append(url)
         else:
-            url_tag = ConfluenceTag("url", attrib={"value": src}, namespace="ri")
+            url_tag = ConfluenceTag("url", attrib={"value": url}, namespace="ri")
         root_element.append(url_tag)
 
         return root_element.render()
+
+    def task_list_item(self, text, checked=False):
+        checkbox = (
+            '<input class="task-list-item-checkbox" type="checkbox" disabled="disabled"'
+        )
+        if checked:
+            checkbox += ' checked="checked"'
+        checkbox += "/>"
+
+        if text.startswith("<p>"):
+            text = text.replace("<p>", "<p>" + checkbox, 1)
+        else:
+            text = checkbox + text
+
+        return '<li class="task-list-item">' + text + "</li>\n"
+
+    def _confluence_anchor(self, name):
+        macro = self.structured_macro("anchor")
+        macro.append(self.parameter("", name))
+        return macro.render()
+
+    def _confluence_anchor_link(self, anchor_name, text):
+        link_tag = ConfluenceTag("link", attrib={"anchor": anchor_name})
+        body_tag = ConfluenceTag("plain-text-link-body", cdata=True)
+        body_tag.text = text
+        link_tag.append(body_tag)
+        return link_tag.render()
+
+    def footnote_ref(self, key, index):
+        i = str(index)
+        anchor = self._confluence_anchor("fnref-" + i)
+        link = self._confluence_anchor_link("fn-" + i, i)
+        return anchor + "<sup>" + link + "</sup>"
+
+    def footnote_item(self, text, key, index):
+        i = str(index)
+        anchor = self._confluence_anchor("fn-" + i)
+        back = self._confluence_anchor_link("fnref-" + i, "\u21a9")
+        text = text.rstrip()
+        if text.endswith("</p>"):
+            text = text[:-4] + back + "</p>"
+        else:
+            text = text + "\n" + back
+        return "<li>" + anchor + text + "</li>\n"
+
+    def footnotes(self, text):
+        return '<section class="footnotes">\n<ol>\n' + text + "</ol>\n</section>\n"
+
+    def _enable_latex_math_macro(self):
+        macro = self.structured_macro("enablelatexmath")
+        macro.append(self.parameter("hide", "true"))
+        return macro.render()
+
+    def inline_math(self, text):
+        self._has_math = True
+        macro = self.structured_macro("mathinline")
+        macro.append(self.parameter("body", text))
+        return macro.render().rstrip("\n")
+
+    def block_math(self, text):
+        self._has_math = True
+        root = self.structured_macro("mathblock")
+        root.append(self.plain_text_body(text))
+        return root.render()

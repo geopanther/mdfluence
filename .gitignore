@@ -152,3 +152,4 @@ venv.bak/
 
 # Project Specifics
 .vscode
+setenv.sh

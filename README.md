@@ -10,6 +10,29 @@
 - **Talk to the Confluence API:** `mdfluence` also features an embedded micro-implementation of the [Confluence Server REST API](https://developer.atlassian.com/server/confluence/confluence-server-rest-api/) with basic support for creating and updating pages and attachments.
 - **Automate the upload process:** You can use `mdfluence`'s full-featured command line utility to automate the upload process for you.
 
+### Supported Markdown plugins
+
+`mdfluence` enables the following [Mistune plugins](https://mistune.lepture.com/en/latest/plugins.html) for extended Markdown syntax:
+
+| Plugin           | Markdown syntax                       | Confluence notes                                                |
+| ---------------- | ------------------------------------- | --------------------------------------------------------------- |
+| Tables           | `\| a \| b \|`                        | —                                                               |
+| Strikethrough    | `~~text~~`                            | —                                                               |
+| Mark             | `==text==`                            | ⚠️ `<mark>` tags stripped by Confluence; degrades to plain text |
+| Insert           | `^^text^^`                            | —                                                               |
+| Superscript      | `x^2^`                                | —                                                               |
+| Subscript        | `H~2~O`                               | —                                                               |
+| Task lists       | `- [x] done`                          | Rendered with XHTML-compliant attributes                        |
+| Definition lists | `Term` / `:  Definition`              | —                                                               |
+| Abbreviations    | `*[HTML]: Hyper Text Markup Language` | ⚠️ `<abbr>` tags stripped by Confluence; degrades to plain text |
+| Footnotes        | `text[^1]` / `[^1]: note`             | Uses Confluence anchor macros for navigation                    |
+| Math (inline)    | `$E=mc^2$`                            | Requires the **LaTeX Math - MathJax** Confluence plugin         |
+| Math (block)     | `$$\sum x$$`                          | Requires the **LaTeX Math - MathJax** Confluence plugin         |
+| Spoiler          | `>! hidden text`                      | ⚠️ No native Confluence equivalent; renders as plain div        |
+| Auto-link URLs   | `https://example.com`                 | —                                                               |
+
+> :information_source: When math syntax (`$...$` or `$$...$$`) is detected, `mdfluence` automatically injects the `enablelatexmath` macro into the page. This macro activates MathJax rendering and requires the [LaTeX Math - MathJax](https://marketplace.atlassian.com/apps/1210882) Confluence plugin to be installed on your instance.
+
 ## Installation
 
 ```bash
@@ -360,13 +383,17 @@ output from a Markdown document.
 ```python
 import mistune
 from mdfluence.confluence_renderer import ConfluenceRenderer
+from mistune.plugins.table import table
 
 markdown_text = "# Page title\n\nInteresting *content* here!"
 
-renderer = ConfluenceRenderer(use_xhtml=True)
+renderer = ConfluenceRenderer()
 confluence_mistune = mistune.Markdown(renderer=renderer)
+table(confluence_mistune)  # enable plugins as needed
 confluence_body = confluence_mistune(markdown_text)
 ```
+
+> :information_source: When using `mdfluence` as a command-line tool or via `parse_page()`, all plugins listed above are enabled automatically.
 
 ### API
 

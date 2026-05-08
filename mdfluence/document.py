@@ -121,7 +121,7 @@ def get_pages_from_directory(
     use_gitignore: bool = True,
     enable_relative_links: bool = False,
     skip_subtrees_wo_markdown: bool = False,
-    enable_emoji: bool = False,
+    enable_emoji: bool = True,
 ) -> List[Page]:
     """
     Collect a list of markdown files recursively under the file_path directory.
@@ -255,7 +255,7 @@ def get_page_data_from_file_path(
     strip_header: bool = False,
     remove_text_newlines: bool = False,
     enable_relative_links: bool = False,
-    enable_emoji: bool = False,
+    enable_emoji: bool = True,
 ) -> Page:
     if not isinstance(file_path, Path):
         file_path = Path(file_path)
@@ -290,7 +290,7 @@ def get_page_data_from_lines(
     strip_header: bool = False,
     remove_text_newlines: bool = False,
     enable_relative_links: bool = False,
-    enable_emoji: bool = False,
+    enable_emoji: bool = True,
 ) -> Page:
     frontmatter = get_document_frontmatter(markdown_lines)
     if "frontmatter_end_line" in frontmatter:
@@ -322,7 +322,7 @@ def parse_page(
     strip_header: bool = False,
     remove_text_newlines: bool = False,
     enable_relative_links: bool = False,
-    enable_emoji: bool = False,
+    enable_emoji: bool = True,
 ) -> Page:
     renderer = ConfluenceRenderer(
         strip_header=strip_header,

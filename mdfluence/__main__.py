@@ -243,9 +243,9 @@ def get_parser():
     )
 
     parser.add_argument(
-        "--enable-emoji",
+        "--disable-emoji",
         action="store_true",
-        help="enable conversion of :shortcode: emoji to Unicode characters",
+        help="disable conversion of :shortcode: emoji to Unicode characters",
     )
 
     parser.add_argument(
@@ -697,7 +697,7 @@ def collect_pages_to_upload(args):
                 strip_header=args.strip_top_header,
                 remove_text_newlines=args.remove_text_newlines,
                 enable_relative_links=False,
-                enable_emoji=args.enable_emoji,
+                enable_emoji=not args.disable_emoji,
             )
         )
 
@@ -725,7 +725,7 @@ def collect_pages_to_upload(args):
                     use_gitignore=args.use_gitignore,
                     enable_relative_links=args.enable_relative_links,
                     skip_subtrees_wo_markdown=args.skip_subtrees_wo_markdown,
-                    enable_emoji=args.enable_emoji,
+                    enable_emoji=not args.disable_emoji,
                 )
             else:
                 try:
@@ -738,7 +738,7 @@ def collect_pages_to_upload(args):
                             strip_header=args.strip_top_header,
                             remove_text_newlines=args.remove_text_newlines,
                             enable_relative_links=enable_relative_links,
-                            enable_emoji=args.enable_emoji,
+                            enable_emoji=not args.disable_emoji,
                         )
                     )
                 except FileNotFoundError:

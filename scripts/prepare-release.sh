@@ -11,6 +11,8 @@
 
 set -euo pipefail
 
+trap 'echo "ERROR: Command failed at line ${LINENO}: ${BASH_COMMAND}" >&2' ERR
+
 # Ensure we're on the default branch and in sync with remote
 DEFAULT_BRANCH="$(gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name')"
 CURRENT_BRANCH="$(git branch --show-current)"
@@ -64,7 +66,7 @@ gh pr create --title "${PR_TITLE}" --body "${PR_TITLE}"
 
 echo "==> Waiting for CI checks to be registered..."
 for i in $(seq 1 30); do
-    if gh pr checks 2>&1 | grep -qv "no checks"; then
+    if gh pr checks 2>&1 | grep -qE '(pass|fail|pending|running)'; then
         break
     fi
     sleep 2

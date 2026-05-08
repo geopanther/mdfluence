@@ -80,6 +80,6 @@ if [[ "$CHECKS_FOUND" -eq 0 ]]; then
 fi
 
 echo "==> Watching CI checks..."
-gh pr checks --watch --fail-fast
+gh pr checks --watch --interval 1 --fail-fast
 
 echo "==> CI passed. Ready to merge."

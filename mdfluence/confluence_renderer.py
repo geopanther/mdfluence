@@ -235,3 +235,13 @@ class ConfluenceRenderer(mistune.HTMLRenderer):
         root = self.structured_macro("mathblock")
         root.append(self.plain_text_body(text))
         return root.render()
+
+    def block_alert(self, text, alert_type="NOTE"):
+        from mdfluence.plugins.alerts import ALERT_TYPE_MAP
+
+        macro_name = ALERT_TYPE_MAP.get(alert_type.upper(), "info")
+        root = self.structured_macro(macro_name)
+        body_tag = ConfluenceTag("rich-text-body", namespace="ac")
+        body_tag.text = text
+        root.append(body_tag)
+        return root.render()

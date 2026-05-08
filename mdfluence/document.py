@@ -25,6 +25,7 @@ from yaml.parser import ParserError
 
 from mdfluence.confluence_renderer import ConfluenceRenderer, RelativeLink
 from mdfluence.ignored_files import GitRepository
+from mdfluence.plugins.alerts import alerts
 
 
 class Page(object):
@@ -335,6 +336,7 @@ def parse_page(
         table,
         task_lists,
         url,
+        alerts,  # must be after spoiler (both override block_quote)
     ]:
         plugin(confluence_mistune)
     confluence_result = confluence_mistune("".join(markdown_lines))

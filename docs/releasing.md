@@ -17,7 +17,7 @@ All publishing uses [PyPI Trusted Publishers (OIDC)](https://docs.pypi.org/trust
 - For RC releases: approval rights on the `pypi-publish-test` GitHub environment
 - For production releases: approval rights on the `pypi-publish-prod` GitHub environment
 - Local dev environment set up (see [CONTRIBUTING.md](../CONTRIBUTING.md))
-- On up-to-date main branch without local changes.
+- On the default branch, in sync with remote (enforced by `prepare-release.sh`).
 
 ## Version format
 

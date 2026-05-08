@@ -11,20 +11,21 @@
 
 set -euo pipefail
 
-# Ensure no uncommitted changes
-if [[ -n "$(git status --porcelain)" ]]; then
-    echo "ERROR: Working directory has uncommitted changes. Abort." >&2
+# Ensure we're on the default branch and in sync with remote
+DEFAULT_BRANCH="$(gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name')"
+CURRENT_BRANCH="$(git branch --show-current)"
+if [[ "$CURRENT_BRANCH" != "$DEFAULT_BRANCH" ]]; then
+    echo "ERROR: Must be on '${DEFAULT_BRANCH}' branch (currently on '${CURRENT_BRANCH}'). Abort." >&2
     exit 1
 fi
 
-# Ensure we're on main and in sync with remote
-CURRENT_BRANCH="$(git branch --show-current)"
-if [[ "$CURRENT_BRANCH" != "main" ]]; then
-    echo "==> Switching to main branch"
-    git checkout main
+git fetch origin "$DEFAULT_BRANCH"
+LOCAL_SHA="$(git rev-parse HEAD)"
+REMOTE_SHA="$(git rev-parse "origin/${DEFAULT_BRANCH}")"
+if [[ "$LOCAL_SHA" != "$REMOTE_SHA" ]]; then
+    echo "ERROR: Local ${DEFAULT_BRANCH} (${LOCAL_SHA:0:8}) differs from remote (${REMOTE_SHA:0:8}). Pull or push first. Abort." >&2
+    exit 1
 fi
-echo "==> Pulling latest from remote"
-git pull --ff-only origin main
 
 VERSION="$(bump-my-version show current_version)"
 if [[ -z "$VERSION" ]]; then

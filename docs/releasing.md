@@ -74,14 +74,8 @@ bump-my-version show current_version
 ./scripts/prepare-release.sh
 ```
 
-This creates a branch, syncs the lockfile, commits, pushes, opens a PR, and watches CI.
-For RC versions, it also removes the RC heading from `CHANGELOG.md` (keeping only `## Unreleased`).
-
-Once CI passes, merge:
-
-```bash
-gh pr merge --merge
-```
+This creates a branch, syncs the lockfile, commits, pushes, opens a PR, watches CI
+and squash-merges it. For RC versions, it removes the RC heading from `CHANGELOG.md` (keeping only `## Unreleased`).
 
 ### 3. Tag and push
 

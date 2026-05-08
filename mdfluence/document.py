@@ -127,6 +127,9 @@ def get_pages_from_directory(
     skip_subtrees_wo_markdown: bool = False,
     enable_emoji: bool = True,
     convert_anchors: bool = False,
+    render_diagrams: bool = False,
+    mmdc_path: str | None = None,
+    plantuml_path: str | None = None,
 ) -> List[Page]:
     """
     Collect a list of markdown files recursively under the file_path directory.
@@ -243,6 +246,9 @@ def get_pages_from_directory(
                 enable_relative_links=enable_relative_links,
                 enable_emoji=enable_emoji,
                 convert_anchors=convert_anchors,
+                render_diagrams=render_diagrams,
+                mmdc_path=mmdc_path,
+                plantuml_path=plantuml_path,
             )
             processed_page.parent_title = parent_page_title
             processed_pages.append(processed_page)
@@ -263,6 +269,9 @@ def get_page_data_from_file_path(
     enable_relative_links: bool = False,
     enable_emoji: bool = True,
     convert_anchors: bool = False,
+    render_diagrams: bool = False,
+    mmdc_path: str | None = None,
+    plantuml_path: str | None = None,
 ) -> Page:
     if not isinstance(file_path, Path):
         file_path = Path(file_path)
@@ -283,6 +292,9 @@ def get_page_data_from_file_path(
         enable_relative_links=enable_relative_links,
         enable_emoji=enable_emoji,
         convert_anchors=convert_anchors,
+        render_diagrams=render_diagrams,
+        mmdc_path=mmdc_path,
+        plantuml_path=plantuml_path,
     )
 
     if not page.title:
@@ -300,6 +312,9 @@ def get_page_data_from_lines(
     enable_relative_links: bool = False,
     enable_emoji: bool = True,
     convert_anchors: bool = False,
+    render_diagrams: bool = False,
+    mmdc_path: str | None = None,
+    plantuml_path: str | None = None,
 ) -> Page:
     frontmatter = get_document_frontmatter(markdown_lines)
     if "frontmatter_end_line" in frontmatter:
@@ -315,6 +330,9 @@ def get_page_data_from_lines(
         enable_emoji=enable_emoji,
         convert_anchors=convert_anchors,
         frontmatter_title=frontmatter_title,
+        render_diagrams=render_diagrams,
+        mmdc_path=mmdc_path,
+        plantuml_path=plantuml_path,
     )
 
     if "title" in frontmatter:
@@ -338,6 +356,9 @@ def parse_page(
     enable_emoji: bool = True,
     convert_anchors: bool = False,
     frontmatter_title: str | None = None,
+    render_diagrams: bool = False,
+    mmdc_path: str | None = None,
+    plantuml_path: str | None = None,
 ) -> Page:
     markdown_text = "".join(markdown_lines)
 
@@ -352,6 +373,9 @@ def parse_page(
         remove_text_newlines=remove_text_newlines,
         enable_relative_links=enable_relative_links,
         anchor_map=anchor_map,
+        render_diagrams=render_diagrams,
+        mmdc_path=mmdc_path,
+        plantuml_path=plantuml_path,
     )
     confluence_mistune = mistune.Markdown(renderer=renderer)
     for plugin in [

@@ -67,6 +67,9 @@ class ConfluenceRenderer(mistune.HTMLRenderer):
         remove_text_newlines=False,
         enable_relative_links=False,
         anchor_map=None,
+        render_diagrams=False,
+        mmdc_path=None,
+        plantuml_path=None,
     ):
         super().__init__(escape=False)
         self.strip_header = strip_header
@@ -82,12 +85,17 @@ class ConfluenceRenderer(mistune.HTMLRenderer):
         self._anchor_map_reverse: dict = (
             {v: k for k, v in self._anchor_map.items()} if anchor_map else {}
         )
+        self._diagram_counter = 0
+        self.render_diagrams = render_diagrams
+        self.mmdc_path = mmdc_path
+        self.plantuml_path = plantuml_path
 
     def reinit(self):
         self.attachments = list()
         self.relative_links = list()
         self._has_math = False
         self._task_id = 0
+        self._diagram_counter = 0
         self.title = None
         self._heading_counts = {}
 
@@ -175,6 +183,29 @@ class ConfluenceRenderer(mistune.HTMLRenderer):
         return super().text(text)
 
     def block_code(self, code, info=None):
+        if self.render_diagrams and info in ("mermaid", "plantuml"):
+            png_data = self._render_diagram(code, info)
+            if png_data is not None:
+                self._diagram_counter += 1
+                filename = f"diagram-{self._diagram_counter}.png"
+                self.attachments.append(filename)
+                # Write temp file for upload
+                import tempfile
+
+                tmpdir = tempfile.mkdtemp()
+                filepath = Path(tmpdir) / filename
+                filepath.write_bytes(png_data)
+                self.attachments[-1] = str(filepath)
+                # Render as image attachment
+                root_element = ConfluenceTag(
+                    name="image", attrib={"alt": f"{info} diagram"}, namespace="ac"
+                )
+                url_tag = ConfluenceTag(
+                    "attachment", attrib={"filename": filename}, namespace="ri"
+                )
+                root_element.append(url_tag)
+                return root_element.render()
+
         root_element = self.structured_macro("code")
         if info is not None:
             lang_parameter = self.parameter(name="language", value=info)
@@ -182,6 +213,15 @@ class ConfluenceRenderer(mistune.HTMLRenderer):
         root_element.append(self.parameter(name="linenumbers", value="true"))
         root_element.append(self.plain_text_body(code))
         return root_element.render()
+
+    def _render_diagram(self, code: str, diagram_type: str) -> bytes | None:
+        from mdfluence.diagrams import render_mermaid, render_plantuml
+
+        if diagram_type == "mermaid":
+            return render_mermaid(code, mmdc_path=self.mmdc_path)
+        elif diagram_type == "plantuml":
+            return render_plantuml(code, plantuml_path=self.plantuml_path)
+        return None
 
     def image(self, text, url, title=None):
         attributes = {"alt": text}

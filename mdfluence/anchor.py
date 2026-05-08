@@ -1,4 +1,4 @@
-"""Rewrite markdown-style fragment anchors to Confluence-native anchor format.
+"""Anchor utilities for rewriting markdown-style fragment anchors to Confluence format.
 
 Confluence generates heading anchors as ``PageTitleStripped-HeadingStripped``
 where "stripped" means spaces and hyphens are removed but other characters
@@ -15,7 +15,6 @@ Confluence anchor   : ``#SSHReverseTunnelSetupGuideEmbeddedHardwaretoAWSEC2-TheC
 
 from __future__ import annotations
 
-import html
 import re
 from urllib.parse import quote as _url_quote
 
@@ -36,28 +35,61 @@ def _heading_to_markdown_anchor(text: str) -> str:
     return slug.strip("-")
 
 
-def _extract_headings(storage_body: str) -> list[str]:
-    """Return plain-text heading strings from Confluence storage-format HTML."""
+def _extract_headings_from_markdown(markdown_text: str) -> list[str]:
+    """Extract heading text from raw markdown lines.
+
+    Returns plain heading text strings (without the ``#`` prefix).
+    Skips headings inside fenced code blocks.
+    """
     headings: list[str] = []
-    for m in re.finditer(r"<h[1-6][^>]*>(.*?)</h[1-6]>", storage_body, re.DOTALL):
-        raw = re.sub(r"<[^>]+>", "", m.group(1))
-        text = html.unescape(raw).strip()
-        if text:
+    in_code_block = False
+    for line in markdown_text.splitlines():
+        stripped = line.strip()
+        if stripped.startswith("```"):
+            in_code_block = not in_code_block
+            continue
+        if in_code_block:
+            continue
+        m = re.match(r"^#{1,6}\s+(.+)$", stripped)
+        if m:
+            text = m.group(1).strip()
+            # Remove trailing # characters (alternate heading syntax)
+            text = re.sub(r"\s+#+\s*$", "", text)
             headings.append(text)
     return headings
 
 
-def _build_anchor_map(storage_body: str, page_title: str) -> dict[str, str]:
-    """Build a mapping *markdown-anchor → confluence-anchor* for every heading.
+def _detect_title_from_markdown(
+    markdown_text: str, frontmatter_title: str | None = None
+) -> str:
+    """Determine page title from frontmatter or first H1."""
+    if frontmatter_title:
+        return frontmatter_title
+    for line in markdown_text.splitlines():
+        stripped = line.strip()
+        m = re.match(r"^#\s+(.+)$", stripped)
+        if m:
+            text = m.group(1).strip()
+            text = re.sub(r"\s+#+\s*$", "", text)
+            return text
+    return ""
 
+
+def build_anchor_map_from_markdown(
+    markdown_text: str,
+    page_title: str,
+) -> dict[str, str]:
+    """Build a mapping *markdown-anchor -> confluence-anchor* from raw markdown.
+
+    Pre-scans the markdown source so the map is available before rendering.
     Handles duplicate headings with GFM-style suffixes:
-    first "Setup" → ``#setup``, second → ``#setup-1``, etc.
+    first "Setup" -> ``#setup``, second -> ``#setup-1``, etc.
     """
     title_part = _strip_for_anchor(page_title)
     anchor_map: dict[str, str] = {}
     seen_counts: dict[str, int] = {}
 
-    for heading in _extract_headings(storage_body):
+    for heading in _extract_headings_from_markdown(markdown_text):
         md_base = _heading_to_markdown_anchor(heading)
         if not md_base:
             continue
@@ -74,38 +106,6 @@ def _build_anchor_map(storage_body: str, page_title: str) -> dict[str, str]:
         if cf_anchor and not cf_anchor[0].isalpha():
             cf_anchor = f"id-{cf_anchor}"
 
-        if md_anchor != cf_anchor:
-            anchor_map[md_anchor] = cf_anchor
+        anchor_map[md_anchor] = cf_anchor
 
     return anchor_map
-
-
-def _rewrite_anchors(storage_body: str, anchor_map: dict[str, str]) -> str:
-    """Replace markdown-style anchors with Confluence-style ones."""
-
-    def _replace_href(m: re.Match[str]) -> str:
-        anchor = m.group(1)
-        if anchor in anchor_map:
-            return f'href="#{anchor_map[anchor]}"'
-        return m.group(0)
-
-    def _replace_ac_anchor(m: re.Match[str]) -> str:
-        anchor = m.group(1)
-        if anchor in anchor_map:
-            return f'ac:anchor="{anchor_map[anchor]}"'
-        return m.group(0)
-
-    storage_body = re.sub(r'href="#([^"]+)"', _replace_href, storage_body)
-    storage_body = re.sub(r'ac:anchor="([^"]+)"', _replace_ac_anchor, storage_body)
-    return storage_body
-
-
-def rewrite_page_anchors(body: str, page_title: str) -> str:
-    """Rewrite markdown-style fragment anchors in *body* to Confluence-native format.
-
-    Returns *body* unchanged if no anchors need rewriting.
-    """
-    anchor_map = _build_anchor_map(body, page_title)
-    if not anchor_map:
-        return body
-    return _rewrite_anchors(body, anchor_map)

@@ -16,7 +16,6 @@ from rich_argparse import RichHelpFormatter
 
 import mdfluence.document
 from mdfluence import api
-from mdfluence.anchor import rewrite_page_anchors
 from mdfluence.console_output import (
     console,
     error_console,
@@ -562,9 +561,6 @@ def pre_process_page(page, args, postface_markup, preface_markup, space_info):
     if postface_markup:
         page.body = page.body + postface_markup
 
-    if args.convert_anchors:
-        page.body = rewrite_page_anchors(page.body, page.title)
-
 
 def validate_relative_links(pages_to_upload, path_to_page):
     invalid_links = False
@@ -698,6 +694,7 @@ def collect_pages_to_upload(args):
                 remove_text_newlines=args.remove_text_newlines,
                 enable_relative_links=False,
                 enable_emoji=not args.disable_emoji,
+                convert_anchors=args.convert_anchors,
             )
         )
 
@@ -726,6 +723,7 @@ def collect_pages_to_upload(args):
                     enable_relative_links=args.enable_relative_links,
                     skip_subtrees_wo_markdown=args.skip_subtrees_wo_markdown,
                     enable_emoji=not args.disable_emoji,
+                    convert_anchors=args.convert_anchors,
                 )
             else:
                 try:
@@ -739,6 +737,7 @@ def collect_pages_to_upload(args):
                             remove_text_newlines=args.remove_text_newlines,
                             enable_relative_links=enable_relative_links,
                             enable_emoji=not args.disable_emoji,
+                            convert_anchors=args.convert_anchors,
                         )
                     )
                 except FileNotFoundError:

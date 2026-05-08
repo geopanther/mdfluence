@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # After PR is merged: checkout main, tag the current version, push tag.
 #
-# Usage: ./scripts/commit-release.sh
+# Usage: ./scripts/publish-release.sh
 #
 # Prerequisites:
 #   - The version-bump PR has been merged to main

@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Create a release branch from the current (already bumped) version,
-# sync lockfile, commit, push, open PR, and watch CI checks.
+# sync lockfile, commit, push, open PR, watch CI checks, and squash-merge.
 #
-# Usage: ./scripts/prepare-release.sh
+# Usage: ./scripts/merge-bump.sh
 #
 # Prerequisites:
 #   - bump-my-version bump has already been run (without --commit)

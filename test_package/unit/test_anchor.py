@@ -1,10 +1,8 @@
 from mdfluence.anchor import (
-    _build_anchor_map,
-    _extract_headings,
+    _extract_headings_from_markdown,
     _heading_to_markdown_anchor,
-    _rewrite_anchors,
     _strip_for_anchor,
-    rewrite_page_anchors,
+    build_anchor_map_from_markdown,
 )
 
 
@@ -47,40 +45,43 @@ class TestHeadingToMarkdownAnchor:
         assert _heading_to_markdown_anchor("Setup (Optional)") == "setup-optional"
 
 
-class TestExtractHeadings:
+class TestExtractHeadingsFromMarkdown:
     def test_basic_headings(self):
-        body = "<h1>Introduction</h1><p>text</p><h2>Details</h2>"
-        assert _extract_headings(body) == ["Introduction", "Details"]
+        md = "# Introduction\n\nsome text\n\n## Details\n"
+        assert _extract_headings_from_markdown(md) == ["Introduction", "Details"]
 
-    def test_strips_nested_tags(self):
-        body = "<h2><strong>Bold Heading</strong></h2>"
-        assert _extract_headings(body) == ["Bold Heading"]
-
-    def test_ignores_empty_headings(self):
-        body = "<h1></h1><h2>Real</h2>"
-        assert _extract_headings(body) == ["Real"]
-
-    def test_unescapes_html_entities(self):
-        body = "<h2>A &amp; B</h2>"
-        assert _extract_headings(body) == ["A & B"]
+    def test_skips_code_blocks(self):
+        md = "## Real\n\n```\n## Not a heading\n```\n\n## Also Real\n"
+        assert _extract_headings_from_markdown(md) == ["Real", "Also Real"]
 
     def test_no_headings(self):
-        assert _extract_headings("<p>just a paragraph</p>") == []
+        assert _extract_headings_from_markdown("just a paragraph\n") == []
 
-    def test_heading_with_attributes(self):
-        body = '<h2 id="foo" class="bar">Heading</h2>'
-        assert _extract_headings(body) == ["Heading"]
+    def test_various_levels(self):
+        md = "# H1\n## H2\n### H3\n#### H4\n##### H5\n###### H6\n"
+        assert _extract_headings_from_markdown(md) == [
+            "H1",
+            "H2",
+            "H3",
+            "H4",
+            "H5",
+            "H6",
+        ]
+
+    def test_trailing_hashes(self):
+        md = "## Heading ##\n"
+        assert _extract_headings_from_markdown(md) == ["Heading"]
 
 
-class TestBuildAnchorMap:
+class TestBuildAnchorMapFromMarkdown:
     def test_basic_mapping(self):
-        body = "<h2>The Concept</h2>"
-        result = _build_anchor_map(body, "My Guide")
+        md = "## The Concept\n"
+        result = build_anchor_map_from_markdown(md, "My Guide")
         assert result == {"the-concept": "MyGuide-TheConcept"}
 
     def test_duplicate_headings(self):
-        body = "<h2>Setup</h2><h2>Setup</h2><h2>Setup</h2>"
-        result = _build_anchor_map(body, "Page")
+        md = "## Setup\n## Setup\n## Setup\n"
+        result = build_anchor_map_from_markdown(md, "Page")
         assert result == {
             "setup": "Page-Setup",
             "setup-1": "Page-Setup-1",
@@ -88,110 +89,69 @@ class TestBuildAnchorMap:
         }
 
     def test_url_encodes_special_chars(self):
-        body = "<h2>Disable Service (if needed)</h2>"
-        result = _build_anchor_map(body, "Guide")
+        md = "## Disable Service (if needed)\n"
+        result = build_anchor_map_from_markdown(md, "Guide")
         assert result == {
             "disable-service-if-needed": "Guide-DisableService%28ifneeded%29",
         }
 
     def test_id_prefix_for_non_alpha_start(self):
-        body = "<h2>3rd Party Libraries</h2>"
-        result = _build_anchor_map(body, "")
-        # Title is empty so cf_anchor starts with "-" which is non-alpha
+        md = "## 3rd Party Libraries\n"
+        result = build_anchor_map_from_markdown(md, "")
         assert "3rd-party-libraries" in result
         assert result["3rd-party-libraries"].startswith("id-")
 
-    def test_skips_when_md_equals_cf(self):
-        # Unlikely in practice but should not appear in map
-        body = "<h2>a</h2>"
-        result = _build_anchor_map(body, "")
-        # md_anchor = "a", cf_anchor = "-a" (starts with -), so id prefix is added
-        # They won't be equal in this case, but test the concept:
-        # If they were equal, they'd be skipped
-        for md, cf in result.items():
-            assert md != cf
-
     def test_empty_body(self):
-        assert _build_anchor_map("", "Title") == {}
+        assert build_anchor_map_from_markdown("", "Title") == {}
 
     def test_long_title_with_hyphens(self):
-        body = "<h2>The Concept</h2>"
+        md = "## The Concept\n"
         title = "SSH Reverse Tunnel Setup Guide - Embedded Hardware to AWS EC2"
-        result = _build_anchor_map(body, title)
+        result = build_anchor_map_from_markdown(md, title)
         expected_anchor = (
             "SSHReverseTunnelSetupGuideEmbeddedHardwaretoAWSEC2-TheConcept"
         )
         assert result == {"the-concept": expected_anchor}
 
-
-class TestRewriteAnchors:
-    def test_rewrites_href(self):
-        body = '<a href="#the-concept">link</a>'
-        anchor_map = {"the-concept": "MyGuide-TheConcept"}
-        assert (
-            _rewrite_anchors(body, anchor_map)
-            == '<a href="#MyGuide-TheConcept">link</a>'
-        )
-
-    def test_rewrites_ac_anchor(self):
-        body = (
-            '<ac:link ac:anchor="the-concept">'
-            "<ac:link-body>text</ac:link-body></ac:link>"
-        )
-        anchor_map = {"the-concept": "MyGuide-TheConcept"}
-        result = _rewrite_anchors(body, anchor_map)
-        assert 'ac:anchor="MyGuide-TheConcept"' in result
-
-    def test_leaves_unknown_anchors(self):
-        body = '<a href="#unknown-heading">link</a>'
-        anchor_map = {"the-concept": "MyGuide-TheConcept"}
-        assert _rewrite_anchors(body, anchor_map) == body
-
-    def test_multiple_anchors(self):
-        body = '<a href="#one">1</a><a href="#two">2</a>'
-        anchor_map = {"one": "Page-One", "two": "Page-Two"}
-        result = _rewrite_anchors(body, anchor_map)
-        assert 'href="#Page-One"' in result
-        assert 'href="#Page-Two"' in result
+    def test_skips_headings_in_code_blocks(self):
+        md = "## Real\n\n```\n## Fake\n```\n"
+        result = build_anchor_map_from_markdown(md, "Page")
+        assert "real" in result
+        assert "fake" not in result
 
 
-class TestRewritePageAnchors:
+class TestAnchorIntegration:
+    """Integration tests using parse_page with convert_anchors=True."""
+
     def test_end_to_end(self):
-        body = (
-            "<h1>Introduction</h1>"
-            '<p>See <a href="#the-concept">the concept</a>.</p>'
-            "<h2>The Concept</h2>"
-            "<p>Details here.</p>"
-            '<p>Back to <a href="#introduction">intro</a>.</p>'
+        from mdfluence.document import parse_page
+
+        md = (
+            "# My Guide\n\n"
+            "See [the concept](#the-concept).\n\n"
+            "## The Concept\n\n"
+            "Details here.\n\n"
+            "Back to [intro](#my-guide).\n"
         )
-        result = rewrite_page_anchors(body, "My Guide")
-        assert 'href="#MyGuide-TheConcept"' in result
-        assert 'href="#MyGuide-Introduction"' in result
+        page = parse_page(list(md), convert_anchors=True)
+        assert 'href="#MyGuide-TheConcept"' in page.body
+        assert 'href="#MyGuide-MyGuide"' in page.body
 
-    def test_no_headings_returns_unchanged(self):
-        body = '<p>No headings <a href="#foo">here</a>.</p>'
-        assert rewrite_page_anchors(body, "Title") == body
+    def test_forward_reference(self):
+        from mdfluence.document import parse_page
 
-    def test_no_fragment_links_returns_unchanged(self):
-        body = "<h2>Heading</h2><p>No links here.</p>"
-        # There are headings but no fragment links to rewrite, body is unchanged
-        result = rewrite_page_anchors(body, "Title")
-        assert result == body
+        md = "# Page\n\nLink to [section](#details) below.\n\n## Details\n\nContent.\n"
+        page = parse_page(list(md), convert_anchors=True)
+        assert 'href="#Page-Details"' in page.body
 
-    def test_non_matching_fragment_left_untouched(self):
-        body = '<h2>Real Heading</h2><p><a href="#nonexistent">link</a></p>'
-        result = rewrite_page_anchors(body, "Page")
-        # The #nonexistent anchor doesn't match any heading, left as-is
-        assert 'href="#nonexistent"' in result
-        # But the heading-matching anchors would be rewritten if referenced
-        assert (
-            'href="#Page-RealHeading"' not in result
-        )  # not referenced, so not in body
+    def test_no_convert_anchors(self):
+        from mdfluence.document import parse_page
+
+        md = "# Page\n\nLink to [section](#details).\n\n## Details\n"
+        page = parse_page(list(md), convert_anchors=False)
+        assert 'href="#details"' in page.body
 
     def test_with_prefix_in_title(self):
-        body = '<h2>Setup</h2><a href="#setup">go</a>'
-        result = rewrite_page_anchors(body, "PREFIX - My Page")
-        assert 'href="#PREFIXMyPage-Setup"' in result
-
-    def test_empty_body(self):
-        assert rewrite_page_anchors("", "Title") == ""
+        md = "## Setup\n"
+        result = build_anchor_map_from_markdown(md, "PREFIX - My Page")
+        assert result == {"setup": "PREFIXMyPage-Setup"}

@@ -66,6 +66,7 @@ class ConfluenceRenderer(mistune.HTMLRenderer):
         strip_header=False,
         remove_text_newlines=False,
         enable_relative_links=False,
+        anchor_map=None,
     ):
         super().__init__(escape=False)
         self.strip_header = strip_header
@@ -76,6 +77,11 @@ class ConfluenceRenderer(mistune.HTMLRenderer):
         self.relative_links: List[RelativeLink] = list()
         self._has_math = False
         self._task_id = 0
+        self._anchor_map: dict = anchor_map or {}
+        self._heading_counts: dict = {}
+        self._anchor_map_reverse: dict = (
+            {v: k for k, v in self._anchor_map.items()} if anchor_map else {}
+        )
 
     def reinit(self):
         self.attachments = list()
@@ -83,6 +89,7 @@ class ConfluenceRenderer(mistune.HTMLRenderer):
         self._has_math = False
         self._task_id = 0
         self.title = None
+        self._heading_counts = {}
 
     def heading(self, text, level, **attrs):
         if self.title is None and level == 1:
@@ -91,7 +98,28 @@ class ConfluenceRenderer(mistune.HTMLRenderer):
             if self.strip_header:
                 return ""
 
-        return super().heading(text, level, **attrs)
+        heading_html = super().heading(text, level, **attrs)
+
+        if self._anchor_map:
+            # Find the confluence anchor for this heading by tracking heading order
+            from mdfluence.anchor import _heading_to_markdown_anchor
+
+            # Strip HTML tags to get plain text for slug computation
+            import re
+
+            plain_text = re.sub(r"<[^>]+>", "", text).strip()
+            md_base = _heading_to_markdown_anchor(plain_text)
+            if md_base:
+                count = self._heading_counts.get(md_base, 0)
+                md_anchor = md_base if count == 0 else f"{md_base}-{count}"
+                self._heading_counts[md_base] = count + 1
+
+                if md_anchor in self._anchor_map:
+                    cf_anchor = self._anchor_map[md_anchor]
+                    anchor_macro = self._confluence_anchor(cf_anchor)
+                    heading_html = anchor_macro + heading_html
+
+        return heading_html
 
     def structured_macro(self, name):
         return ConfluenceTag("structured-macro", attrib={"name": name})
@@ -127,6 +155,17 @@ class ConfluenceRenderer(mistune.HTMLRenderer):
                 )
             )
             url = replacement_link
+        elif (
+            self._anchor_map
+            and not parsed_url.scheme
+            and not parsed_url.netloc
+            and not parsed_url.path
+            and parsed_url.fragment
+        ):
+            # Local fragment link — rewrite to Confluence anchor
+            fragment = parsed_url.fragment
+            if fragment in self._anchor_map:
+                url = f"#{self._anchor_map[fragment]}"
         return super().link(text, url, title)
 
     def text(self, text):

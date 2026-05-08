@@ -23,6 +23,10 @@ from mistune.plugins.url import url
 import yaml
 from yaml.parser import ParserError
 
+from mdfluence.anchor import (
+    _detect_title_from_markdown,
+    build_anchor_map_from_markdown,
+)
 from mdfluence.confluence_renderer import ConfluenceRenderer, RelativeLink
 from mdfluence.ignored_files import GitRepository
 from mdfluence.plugins.alerts import alerts
@@ -122,6 +126,7 @@ def get_pages_from_directory(
     enable_relative_links: bool = False,
     skip_subtrees_wo_markdown: bool = False,
     enable_emoji: bool = True,
+    convert_anchors: bool = False,
 ) -> List[Page]:
     """
     Collect a list of markdown files recursively under the file_path directory.
@@ -237,6 +242,7 @@ def get_pages_from_directory(
                 remove_text_newlines=remove_text_newlines,
                 enable_relative_links=enable_relative_links,
                 enable_emoji=enable_emoji,
+                convert_anchors=convert_anchors,
             )
             processed_page.parent_title = parent_page_title
             processed_pages.append(processed_page)
@@ -256,6 +262,7 @@ def get_page_data_from_file_path(
     remove_text_newlines: bool = False,
     enable_relative_links: bool = False,
     enable_emoji: bool = True,
+    convert_anchors: bool = False,
 ) -> Page:
     if not isinstance(file_path, Path):
         file_path = Path(file_path)
@@ -275,6 +282,7 @@ def get_page_data_from_file_path(
         remove_text_newlines=remove_text_newlines,
         enable_relative_links=enable_relative_links,
         enable_emoji=enable_emoji,
+        convert_anchors=convert_anchors,
     )
 
     if not page.title:
@@ -291,10 +299,13 @@ def get_page_data_from_lines(
     remove_text_newlines: bool = False,
     enable_relative_links: bool = False,
     enable_emoji: bool = True,
+    convert_anchors: bool = False,
 ) -> Page:
     frontmatter = get_document_frontmatter(markdown_lines)
     if "frontmatter_end_line" in frontmatter:
         markdown_lines = markdown_lines[frontmatter["frontmatter_end_line"] :]
+
+    frontmatter_title = frontmatter.get("title")
 
     page = parse_page(
         markdown_lines,
@@ -302,6 +313,8 @@ def get_page_data_from_lines(
         remove_text_newlines=remove_text_newlines,
         enable_relative_links=enable_relative_links,
         enable_emoji=enable_emoji,
+        convert_anchors=convert_anchors,
+        frontmatter_title=frontmatter_title,
     )
 
     if "title" in frontmatter:
@@ -323,11 +336,22 @@ def parse_page(
     remove_text_newlines: bool = False,
     enable_relative_links: bool = False,
     enable_emoji: bool = True,
+    convert_anchors: bool = False,
+    frontmatter_title: str | None = None,
 ) -> Page:
+    markdown_text = "".join(markdown_lines)
+
+    # Pre-scan for anchor map if anchor conversion is enabled
+    anchor_map = None
+    if convert_anchors:
+        page_title = _detect_title_from_markdown(markdown_text, frontmatter_title)
+        anchor_map = build_anchor_map_from_markdown(markdown_text, page_title)
+
     renderer = ConfluenceRenderer(
         strip_header=strip_header,
         remove_text_newlines=remove_text_newlines,
         enable_relative_links=enable_relative_links,
+        anchor_map=anchor_map,
     )
     confluence_mistune = mistune.Markdown(renderer=renderer)
     for plugin in [

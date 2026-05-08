@@ -80,6 +80,11 @@ if [[ "$CHECKS_FOUND" -eq 0 ]]; then
 fi
 
 echo "==> Watching CI checks..."
-gh pr checks --watch --interval 1 --fail-fast
-
-echo "==> CI passed. Ready to merge."
+if gh pr checks --watch --interval 1 --fail-fast; then
+    echo "==> CI passed. Merging..."
+    if gh pr merge --squash --delete-branch; then
+        echo "==> Merge successful."
+    else
+        echo "==> Merge failed!"
+    fi
+fi

@@ -68,7 +68,8 @@ echo "==> Waiting for CI checks to be registered..."
 CHECKS_FOUND=0
 for i in $(seq 1 30); do
     sleep 1
-    if gh pr checks 2>&1 | grep -qE 'pending'; then
+    COUNT="$(gh pr checks --json name --jq 'length')"
+    if [[ "$COUNT" -gt 0 ]]; then
         CHECKS_FOUND=1
         break
     fi

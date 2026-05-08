@@ -102,10 +102,10 @@ Check the package page at `https://test.pypi.org/project/mdfluence/<VERSION>/` a
 - The package is listed
 - Attestations are present (visible under "Provenance")
 
-To test installation:
+To test installation (uses `--index-strategy unsafe-best-match` so dependencies resolve from PyPI while pulling mdfluence from TestPyPI):
 
 ```bash
-uv pip install -i https://test.pypi.org/simple/ mdfluence==<VERSION>
+uv pip install --extra-index-url https://test.pypi.org/simple/ --index-strategy unsafe-best-match mdfluence==<VERSION>
 ```
 
 ### 6. Iterate if needed

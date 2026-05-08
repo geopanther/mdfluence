@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- GFM alert/admonition support (`> [!NOTE]`, `> [!TIP]`, `> [!WARNING]`, `> [!CAUTION]`, `> [!IMPORTANT]`) mapped to Confluence structured macros
+- Emoji shortcode support (`:smile:` → 😄) with 1913 GitHub-compatible mappings, enabled by default (`--disable-emoji` to turn off)
+- Local diagram rendering for mermaid and PlantUML code blocks via `--render-diagrams` flag (requires `mmdc` and/or `plantuml` on PATH)
+- `--mmdc-path` and `--plantuml-path` CLI flags for custom tool locations
+
+### Changed
+
+- Refactored anchor handling from post-processing HTML rewriting to pre-scan approach for better reliability
+
 ## [0.3.0] - 2026-05-08
 
 ### Added

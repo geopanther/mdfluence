@@ -234,11 +234,9 @@ def get_parser():
 
     anchor_group = parser.add_argument_group("anchor arguments")
     anchor_group.add_argument(
-        "--convert-anchors",
-        action=argparse.BooleanOptionalAction,
-        default=True,
-        help="rewrite markdown-style fragment anchors to Confluence-native format. "
-        "Enabled by default. Use --no-convert-anchors to disable.",
+        "--disable-anchor-convert",
+        action="store_true",
+        help="disable rewriting markdown-style fragment anchors to Confluence-native format",
     )
 
     parser.add_argument(
@@ -707,7 +705,7 @@ def collect_pages_to_upload(args):
                 remove_text_newlines=args.remove_text_newlines,
                 enable_relative_links=False,
                 enable_emoji=not args.disable_emoji,
-                convert_anchors=args.convert_anchors,
+                convert_anchors=not args.disable_anchor_convert,
                 render_diagrams=args.render_diagrams,
                 mmdc_path=args.mmdc_path,
                 plantuml_path=args.plantuml_path,
@@ -739,7 +737,7 @@ def collect_pages_to_upload(args):
                     enable_relative_links=args.enable_relative_links,
                     skip_subtrees_wo_markdown=args.skip_subtrees_wo_markdown,
                     enable_emoji=not args.disable_emoji,
-                    convert_anchors=args.convert_anchors,
+                    convert_anchors=not args.disable_anchor_convert,
                     render_diagrams=args.render_diagrams,
                     mmdc_path=args.mmdc_path,
                     plantuml_path=args.plantuml_path,
@@ -756,7 +754,7 @@ def collect_pages_to_upload(args):
                             remove_text_newlines=args.remove_text_newlines,
                             enable_relative_links=enable_relative_links,
                             enable_emoji=not args.disable_emoji,
-                            convert_anchors=args.convert_anchors,
+                            convert_anchors=not args.disable_anchor_convert,
                             render_diagrams=args.render_diagrams,
                             mmdc_path=args.mmdc_path,
                             plantuml_path=args.plantuml_path,

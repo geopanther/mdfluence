@@ -417,10 +417,11 @@ confluence.update_page(page=page, body='New content', update_message='Changed pa
 
 #### GitHub-only features not supported by Mistune
 
-| Feature              | GitHub syntax      | Status in mdfluence |
-| -------------------- | ------------------ | ------------------- |
-| Alerts/Admonitions   | `> [!NOTE]`        | ❌ Not supported    |
-| Mermaid diagrams     | ` ```mermaid `     | ❌ Not supported    |
-| Emoji shortcodes     | `:smile:`          | ❌ Not supported    |
-| Auto heading anchors | Auto-generated IDs | ✅ Supported        |
-| GeoJSON/TopoJSON     | ` ```geojson `     | ❌ Not supported    |
+| Feature              | GitHub syntax      | Status in mdfluence                                                        |
+| -------------------- | ------------------ | -------------------------------------------------------------------------- |
+| Alerts/Admonitions   | `> [!NOTE]`        | ✅ Supported (maps to Confluence info/tip/warning/note macros)             |
+| Mermaid diagrams     | ` ```mermaid `     | ✅ Supported (requires `--render-diagrams` and local `mmdc`)               |
+| Emoji shortcodes     | `:smile:`          | ✅ Supported (enabled by default, disable with `--disable-emoji`)          |
+| Auto heading anchors | Auto-generated IDs | ✅ Supported (enabled by default, disable with `--disable-anchor-convert`) |
+| PlantUML diagrams    | ` ```plantuml `    | ✅ Supported (requires `--render-diagrams` and local `plantuml`)           |
+| GeoJSON/TopoJSON     | ` ```geojson `     | ❌ Not supported                                                           |

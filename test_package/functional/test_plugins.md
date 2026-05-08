@@ -77,6 +77,57 @@ def hello():
     print("Hello from mdfluence!")
 ```
 
+## GFM Alerts
+
+> [!NOTE]
+> This is a note alert for helpful information.
+
+> [!TIP]
+> This is a tip alert for best practices.
+
+> [!WARNING]
+> This is a warning alert for potential issues.
+
+> [!CAUTION]
+> This is a caution alert for dangerous actions.
+
+> [!IMPORTANT]
+> This is an important alert for critical details.
+
+## Emoji Shortcodes
+
+Reactions: :smile: :thumbsup: :heart: :rocket: :eyes:
+
+Status: :white_check_mark: :x: :warning: :construction:
+
+Fun: :tada: :sparkles: :fire: :bug: :gem:
+
+Unknown shortcode passthrough: :not_a_real_emoji:
+
+## Diagram Rendering
+
+```mermaid
+graph TD
+    A[Markdown] -->|parse| B[Mistune AST]
+    B -->|render| C[Confluence Storage Format]
+    C -->|upload| D[Confluence Page]
+```
+
+```plantuml
+@startuml
+actor User
+User -> mdfluence : convert markdown
+mdfluence -> Confluence : upload page
+Confluence --> User : page URL
+@enduml
+```
+
+## Heading Anchors
+
+Jump to [Tables](#tables), [Math](#math), or [Task Lists](#task-lists).
+
+A link to [Emoji Shortcodes](#emoji-shortcodes) and [GFM Alerts](#gfm-alerts).
+
 ---
 
 That's all the plugins!

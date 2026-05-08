@@ -76,6 +76,31 @@ from mdfluence.document import parse_page
             '<a href="https://example.com">',
             "url",
         ),
+        (
+            "> [!NOTE]\n> This is a note.\n",
+            'ac:name="info"',
+            "alert_note",
+        ),
+        (
+            "> [!TIP]\n> This is a tip.\n",
+            'ac:name="tip"',
+            "alert_tip",
+        ),
+        (
+            "> [!WARNING]\n> This is a warning.\n",
+            'ac:name="warning"',
+            "alert_warning",
+        ),
+        (
+            "> [!CAUTION]\n> This is a caution.\n",
+            'ac:name="warning"',
+            "alert_caution",
+        ),
+        (
+            "> [!IMPORTANT]\n> This is important.\n",
+            'ac:name="note"',
+            "alert_important",
+        ),
     ],
     ids=[
         "abbr",
@@ -92,6 +117,11 @@ from mdfluence.document import parse_page
         "table",
         "task_lists",
         "url",
+        "alert_note",
+        "alert_tip",
+        "alert_warning",
+        "alert_caution",
+        "alert_important",
     ],
 )
 def test_plugin_enabled(markdown_input, expected_substring, plugin_name):

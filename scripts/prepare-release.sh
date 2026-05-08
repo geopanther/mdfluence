@@ -11,6 +11,21 @@
 
 set -euo pipefail
 
+# Ensure no uncommitted changes
+if [[ -n "$(git status --porcelain)" ]]; then
+    echo "ERROR: Working directory has uncommitted changes. Abort." >&2
+    exit 1
+fi
+
+# Ensure we're on main and in sync with remote
+CURRENT_BRANCH="$(git branch --show-current)"
+if [[ "$CURRENT_BRANCH" != "main" ]]; then
+    echo "==> Switching to main branch"
+    git checkout main
+fi
+echo "==> Pulling latest from remote"
+git pull --ff-only origin main
+
 VERSION="$(bump-my-version show current_version)"
 if [[ -z "$VERSION" ]]; then
     echo "ERROR: Could not determine current version" >&2

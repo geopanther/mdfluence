@@ -46,6 +46,15 @@ git commit --no-edit -m "Bump version: ${VERSION}"
 git push --set-upstream origin "${BRANCH}"
 gh pr create --title "${PR_TITLE}" --body "${PR_TITLE}"
 
+echo "==> Waiting for CI checks to be registered..."
+for i in $(seq 1 30); do
+    if gh pr checks 2>&1 | grep -qv "no checks"; then
+        break
+    fi
+    sleep 2
+done
+
 echo "==> Watching CI checks..."
-gh pr checks --watch
+gh pr checks --watch --fail-fast
+
 echo "==> CI passed. Ready to merge."

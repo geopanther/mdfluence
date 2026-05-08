@@ -26,6 +26,7 @@ from yaml.parser import ParserError
 from mdfluence.confluence_renderer import ConfluenceRenderer, RelativeLink
 from mdfluence.ignored_files import GitRepository
 from mdfluence.plugins.alerts import alerts
+from mdfluence.plugins.emoji import emoji as emoji_plugin
 
 
 class Page(object):
@@ -120,6 +121,7 @@ def get_pages_from_directory(
     use_gitignore: bool = True,
     enable_relative_links: bool = False,
     skip_subtrees_wo_markdown: bool = False,
+    enable_emoji: bool = True,
 ) -> List[Page]:
     """
     Collect a list of markdown files recursively under the file_path directory.
@@ -234,6 +236,7 @@ def get_pages_from_directory(
                 strip_header=strip_header,
                 remove_text_newlines=remove_text_newlines,
                 enable_relative_links=enable_relative_links,
+                enable_emoji=enable_emoji,
             )
             processed_page.parent_title = parent_page_title
             processed_pages.append(processed_page)
@@ -252,6 +255,7 @@ def get_page_data_from_file_path(
     strip_header: bool = False,
     remove_text_newlines: bool = False,
     enable_relative_links: bool = False,
+    enable_emoji: bool = True,
 ) -> Page:
     if not isinstance(file_path, Path):
         file_path = Path(file_path)
@@ -270,6 +274,7 @@ def get_page_data_from_file_path(
         strip_header=strip_header,
         remove_text_newlines=remove_text_newlines,
         enable_relative_links=enable_relative_links,
+        enable_emoji=enable_emoji,
     )
 
     if not page.title:
@@ -285,6 +290,7 @@ def get_page_data_from_lines(
     strip_header: bool = False,
     remove_text_newlines: bool = False,
     enable_relative_links: bool = False,
+    enable_emoji: bool = True,
 ) -> Page:
     frontmatter = get_document_frontmatter(markdown_lines)
     if "frontmatter_end_line" in frontmatter:
@@ -295,6 +301,7 @@ def get_page_data_from_lines(
         strip_header=strip_header,
         remove_text_newlines=remove_text_newlines,
         enable_relative_links=enable_relative_links,
+        enable_emoji=enable_emoji,
     )
 
     if "title" in frontmatter:
@@ -315,6 +322,7 @@ def parse_page(
     strip_header: bool = False,
     remove_text_newlines: bool = False,
     enable_relative_links: bool = False,
+    enable_emoji: bool = True,
 ) -> Page:
     renderer = ConfluenceRenderer(
         strip_header=strip_header,
@@ -339,6 +347,8 @@ def parse_page(
         alerts,  # must be after spoiler (both override block_quote)
     ]:
         plugin(confluence_mistune)
+    if enable_emoji:
+        emoji_plugin(confluence_mistune)
     confluence_result = confluence_mistune("".join(markdown_lines))
     if not isinstance(confluence_result, str):
         raise TypeError("Expected string output from Markdown renderer")

@@ -129,3 +129,26 @@ def test_plugin_enabled(markdown_input, expected_substring, plugin_name):
     assert expected_substring in page.body, (
         f"Plugin '{plugin_name}' not active. Output: {page.body}"
     )
+
+
+class TestEmojiPlugin:
+    def test_emoji_enabled(self):
+        page = parse_page(list(":smile: hello\n"), enable_emoji=True)
+        assert "\U0001f604" in page.body
+
+    def test_emoji_disabled(self):
+        page = parse_page(list(":smile: hello\n"), enable_emoji=False)
+        assert ":smile:" in page.body
+
+    def test_unknown_shortcode_passthrough(self):
+        page = parse_page(list(":nonexistent_emoji_xyz: text\n"), enable_emoji=True)
+        assert ":nonexistent_emoji_xyz:" in page.body
+
+    def test_multiple_emojis(self):
+        page = parse_page(list(":warning: caution :thumbsup:\n"), enable_emoji=True)
+        assert "\u26a0" in page.body  # warning
+        assert "\U0001f44d" in page.body  # thumbsup
+
+    def test_emoji_not_in_code(self):
+        page = parse_page(list("`code :smile: here`\n"), enable_emoji=True)
+        assert ":smile:" in page.body

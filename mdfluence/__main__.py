@@ -248,6 +248,19 @@ def get_parser():
     )
 
     parser.add_argument(
+        "--render-diagrams",
+        action="store_true",
+        help="render mermaid and plantuml code blocks to PNG images using local tools",
+    )
+    parser.add_argument(
+        "--mmdc-path",
+        help="path to mmdc (mermaid-cli) executable for diagram rendering",
+    )
+    parser.add_argument(
+        "--plantuml-path",
+        help="path to plantuml executable for diagram rendering",
+    )
+    parser.add_argument(
         "--dry-run",
         action="store_true",
         help="print information on all the pages instead of uploading to Confluence",
@@ -695,6 +708,9 @@ def collect_pages_to_upload(args):
                 enable_relative_links=False,
                 enable_emoji=not args.disable_emoji,
                 convert_anchors=args.convert_anchors,
+                render_diagrams=args.render_diagrams,
+                mmdc_path=args.mmdc_path,
+                plantuml_path=args.plantuml_path,
             )
         )
 
@@ -724,6 +740,9 @@ def collect_pages_to_upload(args):
                     skip_subtrees_wo_markdown=args.skip_subtrees_wo_markdown,
                     enable_emoji=not args.disable_emoji,
                     convert_anchors=args.convert_anchors,
+                    render_diagrams=args.render_diagrams,
+                    mmdc_path=args.mmdc_path,
+                    plantuml_path=args.plantuml_path,
                 )
             else:
                 try:
@@ -738,6 +757,9 @@ def collect_pages_to_upload(args):
                             enable_relative_links=enable_relative_links,
                             enable_emoji=not args.disable_emoji,
                             convert_anchors=args.convert_anchors,
+                            render_diagrams=args.render_diagrams,
+                            mmdc_path=args.mmdc_path,
+                            plantuml_path=args.plantuml_path,
                         )
                     )
                 except FileNotFoundError:

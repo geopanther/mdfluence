@@ -23,6 +23,7 @@ dependencies = [
     "requests>=2.31.0,<3",
     "PyYAML>=6.0.1,<7",
     "gitignorefile>=1.1.2,<2",
+    "urllib3>=2.7.0",
 ]
 
 [project.urls]

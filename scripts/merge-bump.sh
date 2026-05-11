@@ -64,28 +64,6 @@ git commit --no-edit -m "Bump version: ${VERSION}"
 git push --set-upstream origin "${BRANCH}"
 gh pr create --title "${PR_TITLE}" --body "${PR_TITLE}"
 
-echo "==> Waiting for CI checks to be registered..."
-CHECKS_FOUND=0
-for i in $(seq 1 30); do
-    sleep 1
-    COUNT="$(gh pr checks --json name --jq 'length')"
-    if [[ "$COUNT" -gt 0 ]]; then
-        CHECKS_FOUND=1
-        break
-    fi
-done
-
-if [[ "$CHECKS_FOUND" -eq 0 ]]; then
-    echo "ERROR: No CI checks appeared after 30s. Abort." >&2
-    exit 1
-fi
-
-echo "==> Watching CI checks..."
-if gh pr checks --watch --interval 1 --fail-fast; then
-    echo "==> CI passed. Merging..."
-    if gh pr merge --squash --delete-branch; then
-        echo "==> Merge successful."
-    else
-        echo "==> Merge failed!"
-    fi
-fi
+# Push and create PR
+git push --force-with-lease
+gh pr merge --squash --delete-branch --auto

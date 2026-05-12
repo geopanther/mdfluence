@@ -50,17 +50,15 @@ Use this to test a release on TestPyPI before publishing to production.
 
 ### 1. Bump version
 
-From the up-to-date `main` branch, bump to the desired RC version:
+From the up-to-date `main` branch, bump to the desired RC version (`0.2.1` → `0.3.0-rc0`):
 
 ```bash
-# 0.2.1 → 0.3.0-rc0
 bump-my-version bump minor
 ```
 
-For subsequent release candidates:
+For subsequent release candidates (`rc0` → `rc1`, `rc1` → `rc2`, etc.):
 
 ```bash
-# rc0 → rc1, rc1 → rc2, etc.
 bump-my-version bump pre_n
 ```
 
@@ -112,10 +110,9 @@ Repeat steps 1–5 using `bump-my-version bump pre_n` to increment the RC number
 
 ### 1. Bump version
 
-From the up-to-date `main` branch, bump to the final version:
+From the up-to-date `main` branch, bump to the final version (e.g. `0.3.0-rc1` → `0.3.0`):
 
 ```bash
-# e.g. 0.3.0-rc1 → 0.3.0
 bump-my-version bump pre_l
 ```
 

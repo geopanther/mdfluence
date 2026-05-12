@@ -56,8 +56,8 @@ git checkout -b "${BRANCH}"
 # Sync lockfile
 UV_LOCKED=0 uv sync --all-groups
 
-# Commit all bumped files + lockfile
-git add -A
+# Commit only bumped files + lockfile
+git add pyproject.toml mdfluence/__init__.py CHANGELOG.md uv.lock
 git commit --no-edit -m "Bump version: ${VERSION}"
 
 # Push and create PR

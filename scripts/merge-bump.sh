@@ -64,6 +64,23 @@ git commit --no-edit -m "Bump version: ${VERSION}"
 git push --set-upstream origin "${BRANCH}"
 gh pr create --title "${PR_TITLE}" --body "${PR_TITLE}"
 
-# Push and create PR
-git push --force-with-lease
-gh pr merge --squash --delete-branch --auto
+# Wait for CI checks to register (max 30s)
+echo "==> Waiting for CI checks to be registered..."
+for i in $(seq 1 30); do
+    sleep 1
+    gh pr checks && RC=$? || RC=$?
+    if [[ $RC -eq 0 || $RC -eq 8 ]]; then
+        break
+    fi
+done
+
+if [[ $RC -ne 0 && $RC -ne 8 ]]; then
+    echo "ERROR: No CI checks appeared after 30s. Abort." >&2
+    exit 1
+fi
+
+# Watch checks until complete, then merge on success
+echo "==> Watching CI checks..."
+gh pr checks --watch --interval 1 --fail-fast
+echo "==> Merging PR..."
+gh pr merge --squash --delete-branch

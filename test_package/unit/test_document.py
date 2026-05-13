@@ -227,6 +227,27 @@ def test_get_pages_from_directory_with_pages_file_multi_level(fs):
     ]
 
 
+def test_get_pages_from_directory_folder_content_from_matching_md(fs):
+    fs.create_file(
+        "/root-folder/sub-folder.md", contents="# Sub Folder Intro\n\nWelcome!"
+    )
+    fs.create_file("/root-folder/sub-folder/child-page.md", contents="# Child")
+
+    result = doc.get_pages_from_directory(Path("/root-folder"))
+    assert result == [
+        FakePage(
+            title="Sub Folder Intro",
+            body="<h1>Sub Folder Intro</h1>\n<p>Welcome!</p>\n",
+            file_path=Path("/root-folder/sub-folder.md"),
+        ),
+        FakePage(
+            title="Child",
+            file_path=Path("/root-folder/sub-folder/child-page.md"),
+            parent_title="Sub Folder Intro",
+        ),
+    ]
+
+
 def test_get_pages_from_directory_with_pages_file_single_level(fs):
     fs.create_file("/root-folder/some-page.md")
     fs.create_file("/root-folder/.pages", contents='title: "Root folder"')

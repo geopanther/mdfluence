@@ -199,6 +199,12 @@ def get_parser():
         help='use the "title" entry in YAML files called .pages in each '
         "directory to change the folder name",
     )
+    dir_group.add_argument(
+        "--use-folder-content-file",
+        action="store_true",
+        help="when a markdown file shares its name with a sibling directory "
+        "(e.g. sub-folder.md next to sub-folder/), use it as the folder page content",
+    )
 
     empty_group = dir_group.add_mutually_exclusive_group()
     empty_group.add_argument(
@@ -741,6 +747,7 @@ def collect_pages_to_upload(args):
                     render_diagrams=args.render_diagrams,
                     mmdc_path=args.mmdc_path,
                     plantuml_path=args.plantuml_path,
+                    use_folder_content_file=args.use_folder_content_file,
                 )
             else:
                 try:

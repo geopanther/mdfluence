@@ -275,6 +275,17 @@ def get_parser():
         "This adds a hash of the page or attachment contents to the update message",
     )
     parser.add_argument(
+        "--clear",
+        action="store_true",
+        help="delete all subpages of the parent page before uploading new ones",
+    )
+    parser.add_argument(
+        "--yes",
+        "-y",
+        action="store_true",
+        help="skip confirmation prompts (e.g. for --clear)",
+    )
+    parser.add_argument(
         "file_list",
         type=Path,
         help="markdown files or directories to upload to Confluence. Empty for stdin",
@@ -348,6 +359,30 @@ def main():
             "if uploading more than one file or whole directories\n"
         )
         sys.exit(1)
+
+    if args.clear:
+        if not args.parent_id:
+            error_console.log(
+                ":x: --clear requires --parent-id to identify which "
+                "subpages to delete\n",
+                markup=True,
+            )
+            sys.exit(1)
+
+        child_pages = confluence.get_child_pages(args.parent_id)
+        if child_pages and not args.yes:
+            console.log(
+                f"[bold red]WARNING:[/] --clear will delete "
+                f"{len(child_pages)} top-level child page(s) "
+                f"and all their descendants under parent {args.parent_id}.",
+                markup=True,
+            )
+            confirm = input("Continue? [y/N] ").strip().lower()
+            if confirm not in ("y", "yes"):
+                console.log("Aborted.")
+                sys.exit(0)
+
+        _delete_subpages(confluence, args.parent_id)
 
     pages_to_upload = collect_pages_to_upload(args)
 
@@ -787,6 +822,20 @@ def collect_pages_to_upload(args):
                 only_page.relative_links = []
 
     return pages_to_upload
+
+
+def _delete_subpages(confluence, page_id):
+    """Recursively delete all child pages under page_id."""
+    child_pages = confluence.get_child_pages(page_id)
+    for child in child_pages:
+        try:
+            _delete_subpages(confluence, child.id)
+            confluence.delete_page(child.id)
+            console.log(f"Deleted page {child.title}")
+        except HTTPError as e:
+            error_console.log(
+                f"Failed to delete page {child.title}: {e.response.content}"
+            )
 
 
 if __name__ == "__main__":

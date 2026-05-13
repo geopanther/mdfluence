@@ -130,6 +130,7 @@ def get_pages_from_directory(
     render_diagrams: bool = False,
     mmdc_path: str | None = None,
     plantuml_path: str | None = None,
+    use_folder_content_file: bool = False,
 ) -> List[Page]:
     """
     Collect a list of markdown files recursively under the file_path directory.
@@ -148,12 +149,29 @@ def get_pages_from_directory(
       placeholders
     :param skip_subtrees_wo_markdown: skip directory subtrees that contain no markdown
       files
+    :param use_folder_content_file: when a markdown file shares its stem with a sibling
+      directory (e.g. subdir.md next to subdir/), use its content as the folder page body
     :return: A list of paths to the markdown files to upload.
     """
     processed_pages = list()
     base_path = file_path.resolve()
     folder_data = dict()
     git_repo = GitRepository(file_path, use_gitignore=use_gitignore)
+
+    # Pre-scan: identify markdown files used as folder content (single walk)
+    files_used_as_folder_content: set[Path] = set()
+    if use_folder_content_file:
+        for current_path, directories, file_names in os.walk(file_path):
+            current_path = Path(current_path).resolve()
+            if git_repo.is_ignored(current_path):
+                continue
+            for subdir in directories:
+                subdir_path = current_path / subdir
+                if git_repo.is_ignored(subdir_path):
+                    continue
+                potential_file = current_path / f"{subdir}.md"
+                if potential_file.exists() and not git_repo.is_ignored(potential_file):
+                    files_used_as_folder_content.add(potential_file.resolve())
 
     for current_path, directories, file_names in os.walk(file_path):
         current_path = Path(current_path).resolve()
@@ -227,6 +245,41 @@ def get_pages_from_directory(
 
         folder_data[current_path]["title"] = folder_title
 
+        # Check for a matching markdown file that provides folder page content
+        folder_content_file = None
+        if use_folder_content_file and current_path != base_path:
+            potential_file = current_path.parent / f"{current_path.name}.md"
+            if potential_file.resolve() in files_used_as_folder_content:
+                folder_content_file = potential_file
+
+        folder_page_body = ""
+        folder_page_file_path = None
+        folder_page_attachments: list[Path] = []
+        folder_page_relative_links: list[RelativeLink] = []
+        folder_page_labels: list[str] | None = None
+
+        if folder_content_file is not None:
+            content_page = get_page_data_from_file_path(
+                folder_content_file,
+                strip_header=strip_header,
+                remove_text_newlines=remove_text_newlines,
+                enable_relative_links=enable_relative_links,
+                enable_emoji=enable_emoji,
+                convert_anchors=convert_anchors,
+                render_diagrams=render_diagrams,
+                mmdc_path=mmdc_path,
+                plantuml_path=plantuml_path,
+            )
+            folder_page_body = content_page.body
+            folder_page_file_path = content_page.file_path
+            folder_page_attachments = content_page.attachments
+            folder_page_relative_links = content_page.relative_links
+            folder_page_labels = content_page.labels
+            if content_page.title:
+                folder_title = content_page.title
+                parent_page_title = content_page.title
+                folder_data[current_path]["title"] = folder_title
+
         if folder_title is not None and (
             markdown_files or (directories and not skip_empty and not collapse_empty)
         ):
@@ -234,11 +287,19 @@ def get_pages_from_directory(
                 Page(
                     title=folder_title,
                     parent_title=folder_parent_title,
-                    body="",
+                    body=folder_page_body,
+                    file_path=folder_page_file_path,
+                    attachments=folder_page_attachments,
+                    relative_links=folder_page_relative_links,
+                    labels=folder_page_labels,
                 )
             )
 
         for markdown_file in markdown_files:
+            # Skip files already used as folder content
+            if markdown_file.resolve() in files_used_as_folder_content:
+                continue
+
             processed_page = get_page_data_from_file_path(
                 markdown_file,
                 strip_header=strip_header,

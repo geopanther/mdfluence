@@ -227,6 +227,43 @@ def test_get_pages_from_directory_with_pages_file_multi_level(fs):
     ]
 
 
+def test_get_pages_from_directory_folder_content_from_matching_md(fs):
+    fs.create_file(
+        "/root-folder/sub-folder.md", contents="# Sub Folder Intro\n\nWelcome!"
+    )
+    fs.create_file("/root-folder/sub-folder/child-page.md", contents="# Child")
+
+    result = doc.get_pages_from_directory(
+        Path("/root-folder"), use_folder_content_file=True
+    )
+    assert result == [
+        FakePage(
+            title="Sub Folder Intro",
+            body="<h1>Sub Folder Intro</h1>\n<p>Welcome!</p>\n",
+            file_path=Path("/root-folder/sub-folder.md"),
+        ),
+        FakePage(
+            title="Child",
+            file_path=Path("/root-folder/sub-folder/child-page.md"),
+            parent_title="Sub Folder Intro",
+        ),
+    ]
+
+
+def test_get_pages_from_directory_folder_content_disabled_by_default(fs):
+    """Without --use-folder-content-file, matching .md is treated as normal page."""
+    fs.create_file(
+        "/root-folder/sub-folder.md", contents="# Sub Folder Intro\n\nWelcome!"
+    )
+    fs.create_file("/root-folder/sub-folder/child-page.md", contents="# Child")
+
+    result = doc.get_pages_from_directory(Path("/root-folder"))
+    # sub-folder.md should appear as a standalone page, folder page should be empty
+    titles = [p.title for p in result]
+    assert "Sub Folder Intro" in titles
+    assert "sub-folder" in titles  # folder page uses dir name
+
+
 def test_get_pages_from_directory_with_pages_file_single_level(fs):
     fs.create_file("/root-folder/some-page.md")
     fs.create_file("/root-folder/.pages", contents='title: "Root folder"')

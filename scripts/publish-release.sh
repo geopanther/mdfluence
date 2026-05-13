@@ -8,7 +8,8 @@
 
 set -euo pipefail
 
-git checkout main
+DEFAULT_BRANCH="$(gh repo view --json defaultBranchRef --jq '.defaultBranchRef.name')"
+git checkout "$DEFAULT_BRANCH"
 git pull
 
 VERSION="$(bump-my-version show current_version)"

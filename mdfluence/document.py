@@ -130,6 +130,7 @@ def get_pages_from_directory(
     render_diagrams: bool = False,
     mmdc_path: str | None = None,
     plantuml_path: str | None = None,
+    page_title_from_filename: bool = False,
 ) -> List[Page]:
     """
     Collect a list of markdown files recursively under the file_path directory.
@@ -249,6 +250,7 @@ def get_pages_from_directory(
                 render_diagrams=render_diagrams,
                 mmdc_path=mmdc_path,
                 plantuml_path=plantuml_path,
+                page_title_from_filename=page_title_from_filename,
             )
             processed_page.parent_title = parent_page_title
             processed_pages.append(processed_page)
@@ -272,6 +274,7 @@ def get_page_data_from_file_path(
     render_diagrams: bool = False,
     mmdc_path: str | None = None,
     plantuml_path: str | None = None,
+    page_title_from_filename: bool = False,
 ) -> Page:
     if not isinstance(file_path, Path):
         file_path = Path(file_path)
@@ -297,7 +300,7 @@ def get_page_data_from_file_path(
         plantuml_path=plantuml_path,
     )
 
-    if not page.title:
+    if page_title_from_filename or not page.title:
         page.title = file_path.stem
 
     page.file_path = file_path

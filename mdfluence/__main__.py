@@ -98,10 +98,16 @@ def get_parser():
         help="upload the page tree starting from the top level (no top level parent)",
     )
 
-    page_group.add_argument(
+    title_group = page_group.add_mutually_exclusive_group()
+    title_group.add_argument(
         "-t",
         "--title",
         help="a title for the page. Determined from the document if missing",
+    )
+    title_group.add_argument(
+        "--title-from-filename",
+        action="store_true",
+        help="always use the filename as the title of the page",
     )
 
     page_group.add_argument(
@@ -719,6 +725,13 @@ def collect_pages_to_upload(args):
             )
             sys.exit(1)
 
+        if args.title_from_filename:
+            error_console.log(
+                "You cannot specify --title-from-filename "
+                "if uploading from standard input\n"
+            )
+            sys.exit(1)
+
         if args.title:
             pages_to_upload[0].title = args.title
     else:
@@ -741,6 +754,7 @@ def collect_pages_to_upload(args):
                     render_diagrams=args.render_diagrams,
                     mmdc_path=args.mmdc_path,
                     plantuml_path=args.plantuml_path,
+                    page_title_from_filename=args.title_from_filename,
                 )
             else:
                 try:
@@ -758,6 +772,7 @@ def collect_pages_to_upload(args):
                             render_diagrams=args.render_diagrams,
                             mmdc_path=args.mmdc_path,
                             plantuml_path=args.plantuml_path,
+                            page_title_from_filename=args.title_from_filename,
                         )
                     )
                 except FileNotFoundError:

@@ -1,6 +1,7 @@
 import pytest
 
 import mdfluence.upsert
+from mdfluence.api import Bunch
 from mdfluence.api import MinimalConfluence as Confluence
 from mdfluence.document import Page
 
@@ -222,6 +223,25 @@ def test_upsert_page_only_changed_no_changes(mocker):
 
     assert upsert_result.response == existing_page_mock
     assert upsert_result.action == upsert_result.action.SKIPPED
+
+
+def test_page_needs_updating_when_no_message(mocker):
+    existing_page_mock = mocker.Mock()
+    ancestor_mock = mocker.Mock()
+    ancestor_mock.id = mocker.sentinel.parent_id
+    existing_page_mock.ancestors = [ancestor_mock]
+    existing_page_mock.version = Bunch()
+
+    page = Page(
+        space=mocker.sentinel.space,
+        title=mocker.sentinel.title,
+        body="hello there",
+        parent_id=mocker.sentinel.parent_id,
+    )
+
+    assert mdfluence.upsert.page_needs_updating(
+        page, existing_page_mock, replace_all_labels=False
+    )
 
 
 def test_page_needs_updating_page_not_changed(mocker):

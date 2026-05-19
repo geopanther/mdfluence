@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Fixed
+
+- Convert HTML void elements (`<br>`, `<img>`, `<hr>`) to XHTML self-closing form for Confluence compatibility
+
+### Changed
+
+- Use stdlib `html.parser.HTMLParser` for robust HTML-to-XHTML conversion instead of regex
+- Use dynamic default branch detection in publish-release script
+
+### CI
+
+- Bump `actions/cache` in the actions group
+
 ## [0.4.0] - 2026-05-12
 
 ### Added

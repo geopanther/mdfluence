@@ -272,3 +272,27 @@ HTML <code>&lt;em&gt;</code> tag; double <code>*</code>'s or <code>_</code>'s wi
 Unlike a pre-formatted code block, a code span indicates code within a
 normal paragraph. For example:</p>
 <p>Use the <code>printf()</code> function.</p>
+<h3>Inline HTML</h3>
+<p>Markdown allows raw HTML inline. Void elements must be converted to
+XHTML self-closing form for Confluence compatibility:</p>
+<p>Line one<br />Line two<br />Line three</p>
+<hr />
+<p>A table with line breaks in cells:</p>
+<table>
+<thead>
+<tr>
+  <th>Feature</th>
+  <th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+  <td>Speed</td>
+  <td>Fast<br />Very fast</td>
+</tr>
+<tr>
+  <td>Quality</td>
+  <td>Good<br />Excellent</td>
+</tr>
+</tbody>
+</table>

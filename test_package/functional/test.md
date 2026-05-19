@@ -304,3 +304,19 @@ Unlike a pre-formatted code block, a code span indicates code within a
 normal paragraph. For example:
 
 Use the `printf()` function.
+
+### Inline HTML
+
+Markdown allows raw HTML inline. Void elements must be converted to
+XHTML self-closing form for Confluence compatibility:
+
+Line one<br>Line two<br>Line three
+
+<hr>
+
+A table with line breaks in cells:
+
+| Feature | Description |
+|---------|-------------|
+| Speed | Fast<br>Very fast |
+| Quality | Good<br>Excellent |

@@ -130,6 +130,7 @@ def get_pages_from_directory(
     render_diagrams: bool = False,
     mmdc_path: str | None = None,
     plantuml_path: str | None = None,
+    title_prefix: str | None = None,
 ) -> List[Page]:
     """
     Collect a list of markdown files recursively under the file_path directory.
@@ -249,6 +250,7 @@ def get_pages_from_directory(
                 render_diagrams=render_diagrams,
                 mmdc_path=mmdc_path,
                 plantuml_path=plantuml_path,
+                title_prefix=title_prefix,
             )
             processed_page.parent_title = parent_page_title
             processed_pages.append(processed_page)
@@ -272,6 +274,7 @@ def get_page_data_from_file_path(
     render_diagrams: bool = False,
     mmdc_path: str | None = None,
     plantuml_path: str | None = None,
+    title_prefix: str | None = None,
 ) -> Page:
     if not isinstance(file_path, Path):
         file_path = Path(file_path)
@@ -295,6 +298,7 @@ def get_page_data_from_file_path(
         render_diagrams=render_diagrams,
         mmdc_path=mmdc_path,
         plantuml_path=plantuml_path,
+        title_prefix=title_prefix,
     )
 
     if not page.title:
@@ -315,6 +319,7 @@ def get_page_data_from_lines(
     render_diagrams: bool = False,
     mmdc_path: str | None = None,
     plantuml_path: str | None = None,
+    title_prefix: str | None = None,
 ) -> Page:
     frontmatter = get_document_frontmatter(markdown_lines)
     if "frontmatter_end_line" in frontmatter:
@@ -333,6 +338,7 @@ def get_page_data_from_lines(
         render_diagrams=render_diagrams,
         mmdc_path=mmdc_path,
         plantuml_path=plantuml_path,
+        title_prefix=title_prefix,
     )
 
     if "title" in frontmatter:
@@ -359,6 +365,7 @@ def parse_page(
     render_diagrams: bool = False,
     mmdc_path: str | None = None,
     plantuml_path: str | None = None,
+    title_prefix: str | None = None,
 ) -> Page:
     markdown_text = "".join(markdown_lines)
 
@@ -366,6 +373,8 @@ def parse_page(
     anchor_map = None
     if convert_anchors:
         page_title = _detect_title_from_markdown(markdown_text, frontmatter_title)
+        if title_prefix:
+            page_title = f"{title_prefix} - {page_title}"
         anchor_map = build_anchor_map_from_markdown(markdown_text, page_title)
 
     renderer = ConfluenceRenderer(

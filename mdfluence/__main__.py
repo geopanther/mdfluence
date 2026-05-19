@@ -709,6 +709,7 @@ def collect_pages_to_upload(args):
                 render_diagrams=args.render_diagrams,
                 mmdc_path=args.mmdc_path,
                 plantuml_path=args.plantuml_path,
+                title_prefix=args.prefix,
             )
         )
 
@@ -741,6 +742,7 @@ def collect_pages_to_upload(args):
                     render_diagrams=args.render_diagrams,
                     mmdc_path=args.mmdc_path,
                     plantuml_path=args.plantuml_path,
+                    title_prefix=args.prefix,
                 )
             else:
                 try:
@@ -758,6 +760,7 @@ def collect_pages_to_upload(args):
                             render_diagrams=args.render_diagrams,
                             mmdc_path=args.mmdc_path,
                             plantuml_path=args.plantuml_path,
+                            title_prefix=args.prefix,
                         )
                     )
                 except FileNotFoundError:

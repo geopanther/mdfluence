@@ -130,4 +130,21 @@ A link to [Emoji Shortcodes](#emoji-shortcodes) and [GFM Alerts](#gfm-alerts).
 
 ---
 
+## Inline HTML / XHTML Compatibility
+
+Void elements like `<br>` and `<hr>` must self-close in Confluence XHTML:
+
+First line<br>Second line<br>Third line
+
+<hr>
+
+Table with inline breaks:
+
+| Item | Notes |
+|------|-------|
+| Alpha | Note A<br>Note B |
+| Beta | Note C<br>Note D |
+
+---
+
 That's all the plugins!

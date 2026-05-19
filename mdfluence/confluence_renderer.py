@@ -1,9 +1,73 @@
 import uuid
+from html.parser import HTMLParser
 from pathlib import Path
 from typing import List, NamedTuple
 from urllib.parse import unquote, urlparse
 
 import mistune
+
+_VOID_ELEMENTS = frozenset(
+    {
+        "area",
+        "base",
+        "br",
+        "col",
+        "embed",
+        "hr",
+        "img",
+        "input",
+        "link",
+        "meta",
+        "param",
+        "source",
+        "track",
+        "wbr",
+    }
+)
+
+
+class _XHTMLConverter(HTMLParser):
+    """Convert HTML to XHTML by self-closing void elements."""
+
+    def __init__(self):
+        super().__init__(convert_charrefs=False)
+        self._parts: list[str] = []
+
+    def handle_starttag(self, tag, attrs):
+        attr_str = "".join(
+            f' {k}="{v}"' if v is not None else f" {k}" for k, v in attrs
+        )
+        if tag in _VOID_ELEMENTS:
+            self._parts.append(f"<{tag}{attr_str} />")
+        else:
+            self._parts.append(f"<{tag}{attr_str}>")
+
+    def handle_endtag(self, tag):
+        if tag not in _VOID_ELEMENTS:
+            self._parts.append(f"</{tag}>")
+
+    def handle_data(self, data):
+        self._parts.append(data)
+
+    def handle_entityref(self, name):
+        self._parts.append(f"&{name};")
+
+    def handle_charref(self, name):
+        self._parts.append(f"&#{name};")
+
+    def handle_comment(self, data):
+        self._parts.append(f"<!--{data}-->")
+
+    def handle_pi(self, data):
+        self._parts.append(f"<?{data}>")
+
+    def convert(self, html: str) -> str:
+        self._parts = []
+        self.feed(html)
+        return "".join(self._parts)
+
+
+_xhtml_converter = _XHTMLConverter()
 
 
 class RelativeLink(NamedTuple):
@@ -297,6 +361,12 @@ class ConfluenceRenderer(mistune.HTMLRenderer):
 
     def footnotes(self, text):
         return '<section class="footnotes">\n<ol>\n' + text + "</ol>\n</section>\n"
+
+    def inline_html(self, html):
+        return _xhtml_converter.convert(html)
+
+    def block_html(self, html):
+        return _xhtml_converter.convert(html)
 
     def _enable_latex_math_macro(self):
         macro = self.structured_macro("enablelatexmath")

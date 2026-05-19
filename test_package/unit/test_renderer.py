@@ -1,8 +1,13 @@
 import re
 
+import mistune
 import pytest
 
-from mdfluence.confluence_renderer import ConfluenceRenderer, ConfluenceTag
+from mdfluence.confluence_renderer import (
+    ConfluenceRenderer,
+    ConfluenceTag,
+    _XHTMLConverter,
+)
 
 
 def test_add_namespace():
@@ -357,4 +362,73 @@ def test_renderer_relative_link_with_fragment_disabled():
         )
         == '<a href="document/../path/page.md#header-name">relative link</a>'
     )
-    assert renderer.relative_links == []
+
+
+# --- XHTML void element conversion ---
+
+
+class TestXHTMLConverter:
+    @pytest.fixture
+    def converter(self):
+        return _XHTMLConverter()
+
+    @pytest.mark.parametrize(
+        "html, expected",
+        [
+            ("<br>", "<br />"),
+            ("<br/>", "<br />"),
+            ("<br />", "<br />"),
+            ("<hr>", "<hr />"),
+            ("<img src='x'>", '<img src="x" />'),
+            ('<img src="x" width="900"/>', '<img src="x" width="900" />'),
+            ('<img src="x" width="900" />', '<img src="x" width="900" />'),
+        ],
+        ids=[
+            "br-no-slash",
+            "br-self-closed",
+            "br-self-closed-space",
+            "hr",
+            "img-no-slash",
+            "img-self-closed",
+            "img-self-closed-space",
+        ],
+    )
+    def test_void_elements_self_close(self, converter, html, expected):
+        assert converter.convert(html) == expected
+
+    def test_non_void_elements_unchanged(self, converter):
+        assert converter.convert("<p>text</p>") == "<p>text</p>"
+        assert converter.convert("<div>content</div>") == "<div>content</div>"
+
+    def test_mixed_content(self, converter):
+        assert (
+            converter.convert("<p>hello<br><br>world</p>")
+            == "<p>hello<br /><br />world</p>"
+        )
+
+    def test_confluence_macros_passthrough(self, converter):
+        macro = '<ac:structured-macro ac:name="code">text</ac:structured-macro>'
+        assert converter.convert(macro) == macro
+
+    def test_entities_preserved(self, converter):
+        assert converter.convert("&amp; &lt;") == "&amp; &lt;"
+
+    def test_plain_text_unchanged(self, converter):
+        assert converter.convert("no html here") == "no html here"
+
+
+class TestRendererInlineHTML:
+    def _render(self, markdown):
+        renderer = ConfluenceRenderer()
+        md = mistune.create_markdown(renderer=renderer)
+        return md(markdown)
+
+    def test_br_in_paragraph(self):
+        result = self._render("hello<br>world")
+        assert "<br />" in result
+        assert "<br>" not in result
+
+    def test_br_in_table_cell(self):
+        result = self._render("| a |\n|---|\n| x<br>y |")
+        assert "<br />" in result
+        assert "<br>" not in result

@@ -155,3 +155,40 @@ class TestAnchorIntegration:
         md = "## Setup\n"
         result = build_anchor_map_from_markdown(md, "PREFIX - My Page")
         assert result == {"setup": "PREFIXMyPage-Setup"}
+
+
+class TestAnchorWithTitlePrefix:
+    def test_parse_page_with_prefix_generates_correct_anchors(self):
+        from mdfluence.document import parse_page
+
+        md = "# My Page\n\nGo to [setup](#setup).\n\n## Setup\n\nContent.\n"
+        page = parse_page(
+            list(md),
+            strip_header=True,
+            convert_anchors=True,
+            title_prefix="testprefix",
+        )
+
+        assert "testprefixMyPage-Setup" in page.body
+        assert 'href="#testprefixMyPage-Setup"' in page.body
+        # No unprefixed anchors
+        assert 'href="#MyPage-Setup"' not in page.body
+
+    def test_parse_page_without_prefix_unchanged(self):
+        from mdfluence.document import parse_page
+
+        md = "# My Page\n\nGo to [setup](#setup).\n\n## Setup\n\nContent.\n"
+        page = parse_page(list(md), strip_header=True, convert_anchors=True)
+
+        assert "MyPage-Setup" in page.body
+        assert 'href="#MyPage-Setup"' in page.body
+
+    def test_prefix_with_multiple_headings(self):
+        from mdfluence.document import parse_page
+
+        md = "# Doc\n\n## Intro\n\n## Details\n"
+        page = parse_page(list(md), convert_anchors=True, title_prefix="pre")
+
+        assert "preDoc-Intro" in page.body
+        assert "preDoc-Details" in page.body
+        assert 'Doc-Intro"' not in page.body.replace("preDoc-Intro", "")

@@ -15,7 +15,7 @@ from mistune.plugins.formatting import (
     subscript,
     superscript,
 )
-from mistune.plugins.math import math
+from mistune.plugins.math import math, parse_inline_math
 from mistune.plugins.spoiler import spoiler
 from mistune.plugins.table import table
 from mistune.plugins.task_lists import task_lists
@@ -404,6 +404,18 @@ def parse_page(
         alerts,  # must be after spoiler (both override block_quote)
     ]:
         plugin(confluence_mistune)
+        if plugin is math:
+            # Override Mistune's broken inline math pattern:
+            # - (?!\$): don't match $$ block delimiters
+            # - [^$\\\n]: no newlines in inline math
+            # - (?!\d): closing $ can't precede digit (rejects currency)
+            confluence_mistune.inline.rules.remove("inline_math")
+            confluence_mistune.inline.register(
+                "inline_math",
+                r"\$(?!\$)(?P<math_text>(?:[^$\\\n]|\\.)+?)\$(?!\d)",
+                parse_inline_math,
+                before="link",
+            )
     if enable_emoji:
         emoji_plugin(confluence_mistune)
     confluence_result = confluence_mistune("".join(markdown_lines))

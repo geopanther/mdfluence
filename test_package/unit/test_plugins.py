@@ -152,3 +152,46 @@ class TestEmojiPlugin:
     def test_emoji_not_in_code(self):
         page = parse_page(list("`code :smile: here`\n"), enable_emoji=True)
         assert ":smile:" in page.body
+
+
+class TestInlineMathPattern:
+    """Tests for the stricter inline math regex that rejects currency and cross-line matches."""
+
+    def test_valid_inline_math(self):
+        page = parse_page(list("Inline $x^2$ end\n"))
+        assert "mathinline" in page.body
+
+    def test_valid_inline_math_with_spaces(self):
+        page = parse_page(list("Inline $ x + y $ end\n"))
+        assert "mathinline" in page.body
+
+    def test_valid_math_followed_by_letter(self):
+        """The $n$th element pattern must work."""
+        page = parse_page(list("The $n$th element\n"))
+        assert "mathinline" in page.body
+
+    def test_valid_math_followed_by_punctuation(self):
+        page = parse_page(list("Result is $x^2$.\n"))
+        assert "mathinline" in page.body
+
+    def test_currency_not_matched(self):
+        """$51,300 should not trigger inline math."""
+        page = parse_page(list("Price is $51,300 and cost is $51,300 total\n"))
+        assert "mathinline" not in page.body
+        assert "enablelatexmath" not in page.body
+
+    def test_currency_across_lines_not_matched(self):
+        """Dollar signs on separate lines must not pair as math."""
+        page = parse_page(list("Line one $500\nLine two $600\n"))
+        assert "mathinline" not in page.body
+
+    def test_block_math_not_affected(self):
+        """Block math ($$...$$) must still work."""
+        page = parse_page(list("$$\nx^2\n$$\n"))
+        assert "mathblock" in page.body
+
+    def test_single_dollar_no_match(self):
+        """A single $ without a closing pair should not trigger math."""
+        page = parse_page(list("The $1.6T valuation narrative\n"))
+        assert "mathinline" not in page.body
+        assert "enablelatexmath" not in page.body

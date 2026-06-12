@@ -30,6 +30,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Emoji shortcode support (`:smile:` → 😄) with 1913 GitHub-compatible mappings, enabled by default (`--disable-emoji` to turn off)
 - Local diagram rendering for mermaid and PlantUML code blocks via `--render-diagrams` flag (requires `mmdc` and/or `plantuml` on PATH)
 - `--mmdc-path` and `--plantuml-path` CLI flags for custom tool locations
+- Mark/highlight plugin support (`==text==` syntax) renders as yellow highlighted text using Confluence inline styling
 
 ### Changed
 

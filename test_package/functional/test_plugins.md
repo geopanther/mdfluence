@@ -25,6 +25,8 @@ Mistune supports footnotes[^1] and multiple references[^2].
 
 ## Formatting
 
+- Bold: **this text is bold**, (__alternative bold text__)
+- Italics: *this text is in italics*, (_alternative italics text_)
 - Strikethrough: ~~this text is deleted~~
 - Highlight: ==this text is marked==
 - Insert: ^^this text was inserted^^
@@ -33,13 +35,23 @@ Mistune supports footnotes[^1] and multiple references[^2].
 
 ## Math
 
-Inline math: $E = mc^2$
+Inline math:
+
+Inline math w/o surrouding spaces: $E = mc^2$
+
+Inline math w/ surrounding spaces: $ a^2 + b^2 = c^2 $
 
 Block math:
-
 $$
 \sum_{i=1}^{n} x_i = x_1 + x_2 + \cdots + x_n
 $$
+
+The next 2 lines should NOT be rendered as math:
+
+Prices: Product A is $5,600.00 and Product B is $7,600.00.
+
+Single-Line Formula over serveral lines: $ a^2 + b^2 =
+c^2 $
 
 ## Spoiler
 
@@ -62,9 +74,9 @@ Documentation at https://mistune.lepture.com/en/latest/plugins.html is helpful.
 The HTML specification is maintained by the W3C.
 You can write CSS alongside your HTML documents.
 
-*[HTML]: Hyper Text Markup Language
-*[W3C]: World Wide Web Consortium
-*[CSS]: Cascading Style Sheets
+*[HTML]: Hyper Text Markup Language (Should not be rendered)
+*[W3C]: World Wide Web Consortium (same as above)
+*[CSS]: Cascading Style Sheets (same as above)
 
 ## Standard Markdown (no plugin needed)
 

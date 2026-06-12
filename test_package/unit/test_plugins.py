@@ -28,7 +28,7 @@ from mdfluence.document import parse_page
         ),
         (
             "==highlighted==\n",
-            "<mark>",
+            "background-color: #ffe59a;",
             "mark",
         ),
         (

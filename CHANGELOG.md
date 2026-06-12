@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - Pass title prefix through rendering pipeline so Confluence anchors use the correct prefixed page title
 - Convert HTML void elements (`<br>`, `<img>`, `<hr>`) to XHTML self-closing form for Confluence compatibility
+- Override Mistune's broken inline math regex to reject currency patterns (`$51,300`) and cross-line false matches
 
 ### Changed
 

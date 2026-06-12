@@ -132,7 +132,7 @@ def test_renderer_block_code():
     test_code = "this is a piece of code"
     test_markup = (
         '<ac:structured-macro ac:name="code">'
-        '<ac:parameter ac:name="linenumbers">true</ac:parameter>\n'
+        '<ac:parameter ac:name="linenumbers">false</ac:parameter>\n'
         "<ac:plain-text-body><![CDATA[this is a piece of code]]></ac:plain-text-body>\n"
         "</ac:structured-macro>\n"
     )
@@ -148,7 +148,7 @@ def test_renderer_block_code_with_language():
     test_markup = (
         '<ac:structured-macro ac:name="code">'
         '<ac:parameter ac:name="language">whitespace</ac:parameter>\n'
-        '<ac:parameter ac:name="linenumbers">true</ac:parameter>\n'
+        '<ac:parameter ac:name="linenumbers">false</ac:parameter>\n'
         "<ac:plain-text-body><![CDATA[this is a piece of code]]></ac:plain-text-body>\n"
         "</ac:structured-macro>\n"
     )

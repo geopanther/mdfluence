@@ -274,7 +274,7 @@ class ConfluenceRenderer(mistune.HTMLRenderer):
         if info is not None:
             lang_parameter = self.parameter(name="language", value=info)
             root_element.append(lang_parameter)
-        root_element.append(self.parameter(name="linenumbers", value="true"))
+        root_element.append(self.parameter(name="linenumbers", value="false"))
         root_element.append(self.plain_text_body(code))
         return root_element.render()
 

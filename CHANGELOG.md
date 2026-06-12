@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- Disable line numbers in Confluence code blocks for cleaner rendering
 - Use stdlib `html.parser.HTMLParser` for robust HTML-to-XHTML conversion instead of regex
 - Use dynamic default branch detection in publish-release script
 

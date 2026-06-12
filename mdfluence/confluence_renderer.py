@@ -394,3 +394,6 @@ class ConfluenceRenderer(mistune.HTMLRenderer):
         body_tag.text = text
         root.append(body_tag)
         return root.render()
+
+    def mark(self, text):
+        return f'<span style="background-color: #ffe59a;">{text}</span>'

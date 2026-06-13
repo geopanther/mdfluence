@@ -131,6 +131,7 @@ def get_pages_from_directory(
     mmdc_path: str | None = None,
     plantuml_path: str | None = None,
     title_prefix: str | None = None,
+    enable_line_numbers: bool = False,
 ) -> List[Page]:
     """
     Collect a list of markdown files recursively under the file_path directory.
@@ -251,6 +252,7 @@ def get_pages_from_directory(
                 mmdc_path=mmdc_path,
                 plantuml_path=plantuml_path,
                 title_prefix=title_prefix,
+                enable_line_numbers=enable_line_numbers,
             )
             processed_page.parent_title = parent_page_title
             processed_pages.append(processed_page)
@@ -275,6 +277,7 @@ def get_page_data_from_file_path(
     mmdc_path: str | None = None,
     plantuml_path: str | None = None,
     title_prefix: str | None = None,
+    enable_line_numbers: bool = False,
 ) -> Page:
     if not isinstance(file_path, Path):
         file_path = Path(file_path)
@@ -299,6 +302,7 @@ def get_page_data_from_file_path(
         mmdc_path=mmdc_path,
         plantuml_path=plantuml_path,
         title_prefix=title_prefix,
+        enable_line_numbers=enable_line_numbers,
     )
 
     if not page.title:
@@ -320,6 +324,7 @@ def get_page_data_from_lines(
     mmdc_path: str | None = None,
     plantuml_path: str | None = None,
     title_prefix: str | None = None,
+    enable_line_numbers: bool = False,
 ) -> Page:
     frontmatter = get_document_frontmatter(markdown_lines)
     if "frontmatter_end_line" in frontmatter:
@@ -339,6 +344,7 @@ def get_page_data_from_lines(
         mmdc_path=mmdc_path,
         plantuml_path=plantuml_path,
         title_prefix=title_prefix,
+        enable_line_numbers=enable_line_numbers,
     )
 
     if "title" in frontmatter:
@@ -366,6 +372,7 @@ def parse_page(
     mmdc_path: str | None = None,
     plantuml_path: str | None = None,
     title_prefix: str | None = None,
+    enable_line_numbers: bool = False,
 ) -> Page:
     markdown_text = "".join(markdown_lines)
 
@@ -385,6 +392,7 @@ def parse_page(
         render_diagrams=render_diagrams,
         mmdc_path=mmdc_path,
         plantuml_path=plantuml_path,
+        enable_line_numbers=enable_line_numbers,
     )
     confluence_mistune = mistune.Markdown(renderer=renderer)
     for plugin in [

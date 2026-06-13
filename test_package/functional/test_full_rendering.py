@@ -22,3 +22,16 @@ def test_full_document(script_loc):
 
     assert page.body == result_data
     assert page.title == "Markdown: Syntax"
+
+
+def test_full_document_with_line_numbers(script_loc):
+    markdown_path = script_loc.join("test.md")
+
+    page = document.get_page_data_from_file_path(
+        markdown_path, enable_line_numbers=True
+    )
+
+    # All code blocks should have linenumbers set to true
+    assert '<ac:parameter ac:name="linenumbers">true</ac:parameter>' in page.body
+    assert '<ac:parameter ac:name="linenumbers">false</ac:parameter>' not in page.body
+    assert page.title == "Markdown: Syntax"

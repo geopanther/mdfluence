@@ -246,6 +246,12 @@ def get_parser():
     )
 
     parser.add_argument(
+        "--enable-line-numbers",
+        action="store_true",
+        help="enable line numbers in Confluence code blocks",
+    )
+
+    parser.add_argument(
         "--render-diagrams",
         action="store_true",
         help="render mermaid and plantuml code blocks to PNG images using local tools",
@@ -710,6 +716,7 @@ def collect_pages_to_upload(args):
                 mmdc_path=args.mmdc_path,
                 plantuml_path=args.plantuml_path,
                 title_prefix=args.prefix,
+                enable_line_numbers=args.enable_line_numbers,
             )
         )
 
@@ -743,6 +750,7 @@ def collect_pages_to_upload(args):
                     mmdc_path=args.mmdc_path,
                     plantuml_path=args.plantuml_path,
                     title_prefix=args.prefix,
+                    enable_line_numbers=args.enable_line_numbers,
                 )
             else:
                 try:
@@ -761,6 +769,7 @@ def collect_pages_to_upload(args):
                             mmdc_path=args.mmdc_path,
                             plantuml_path=args.plantuml_path,
                             title_prefix=args.prefix,
+                            enable_line_numbers=args.enable_line_numbers,
                         )
                     )
                 except FileNotFoundError:

@@ -186,6 +186,10 @@ In file.md:
 
 By default, relative links that point to non-existent files (or files that are not being uploaded in the current batch) will result in an error. To ignore these errors and keep the links as they are, use the `--ignore-relative-link-errors` flag.
 
+## Code blocks
+
+By default, line numbers are disabled in Confluence code blocks for cleaner output. To render line numbers alongside your code, pass the `--enable-line-numbers` flag.
+
 ## Directory arguments
 
 ### Uploading Folders Recursively

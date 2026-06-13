@@ -96,7 +96,7 @@ and code blocks:</p>
 <li>This is the second list item.</li>
 </ol>
 <p>Here's some example code:</p>
-<ac:structured-macro ac:name="code"><ac:parameter ac:name="linenumbers">true</ac:parameter>
+<ac:structured-macro ac:name="code"><ac:parameter ac:name="linenumbers">false</ac:parameter>
 <ac:plain-text-body><![CDATA[return shell_exec("echo $input | $markdown_script");]]></ac:plain-text-body>
 </ac:structured-macro>
 </blockquote>
@@ -205,7 +205,7 @@ inside a list item.</p>
 to be indented <em>twice</em> -- 8 spaces or two tabs:</p>
 <ul>
 <li><p>A list item with a code block:</p>
-<ac:structured-macro ac:name="code"><ac:parameter ac:name="linenumbers">true</ac:parameter>
+<ac:structured-macro ac:name="code"><ac:parameter ac:name="linenumbers">false</ac:parameter>
 <ac:plain-text-body><![CDATA[<code goes here>]]></ac:plain-text-body>
 </ac:structured-macro>
 </li>
@@ -218,11 +218,11 @@ in both <code>&lt;pre&gt;</code> and <code>&lt;code&gt;</code> tags.</p>
 <p>To produce a code block in Markdown, simply indent every line of the
 block by at least 4 spaces or 1 tab.</p>
 <p>This is a normal paragraph:</p>
-<ac:structured-macro ac:name="code"><ac:parameter ac:name="linenumbers">true</ac:parameter>
+<ac:structured-macro ac:name="code"><ac:parameter ac:name="linenumbers">false</ac:parameter>
 <ac:plain-text-body><![CDATA[This is a code block.]]></ac:plain-text-body>
 </ac:structured-macro>
 <p>Here is an example of AppleScript:</p>
-<ac:structured-macro ac:name="code"><ac:parameter ac:name="linenumbers">true</ac:parameter>
+<ac:structured-macro ac:name="code"><ac:parameter ac:name="linenumbers">false</ac:parameter>
 <ac:plain-text-body><![CDATA[tell application "Foo"
     beep
 end tell]]></ac:plain-text-body>
@@ -234,7 +234,7 @@ are automatically converted into HTML entities. This makes it very
 easy to include example HTML source code using Markdown -- just paste
 it and indent it, and Markdown will handle the hassle of encoding the
 ampersands and angle brackets. For example, this:</p>
-<ac:structured-macro ac:name="code"><ac:parameter ac:name="linenumbers">true</ac:parameter>
+<ac:structured-macro ac:name="code"><ac:parameter ac:name="linenumbers">false</ac:parameter>
 <ac:plain-text-body><![CDATA[<div class="footer">
     &copy; 2004 Foo Corporation
 </div>]]></ac:plain-text-body>
@@ -242,7 +242,7 @@ ampersands and angle brackets. For example, this:</p>
 <p>Regular Markdown syntax is not processed within code blocks. E.g.,
 asterisks are just literal asterisks within a code block. This means
 it's also easy to use Markdown to write about Markdown's own syntax.</p>
-<ac:structured-macro ac:name="code"><ac:parameter ac:name="linenumbers">true</ac:parameter>
+<ac:structured-macro ac:name="code"><ac:parameter ac:name="linenumbers">false</ac:parameter>
 <ac:plain-text-body><![CDATA[tell application "Foo"
     beep
 end tell

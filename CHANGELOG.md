@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Unreleased
 
+### Added
+
+- `--enable-line-numbers` CLI flag to opt in to line numbers for Confluence code blocks
+
 ### Fixed
 
 - Pass title prefix through rendering pipeline so Confluence anchors use the correct prefixed page title
@@ -15,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **BREAKING (pre-1.0):** Confluence code block line numbers are now **off by default**. Existing users will lose line numbers on their next upload unless they pass `--enable-line-numbers`.
 - Use stdlib `html.parser.HTMLParser` for robust HTML-to-XHTML conversion instead of regex
 - Use dynamic default branch detection in publish-release script
 

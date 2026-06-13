@@ -134,10 +134,12 @@ class ConfluenceRenderer(mistune.HTMLRenderer):
         render_diagrams=False,
         mmdc_path=None,
         plantuml_path=None,
+        enable_line_numbers=False,
     ):
         super().__init__(escape=False)
         self.strip_header = strip_header
         self.remove_text_newlines = remove_text_newlines
+        self.enable_line_numbers = enable_line_numbers
         self.attachments = list()
         self.title = None
         self.enable_relative_links = enable_relative_links
@@ -274,7 +276,8 @@ class ConfluenceRenderer(mistune.HTMLRenderer):
         if info is not None:
             lang_parameter = self.parameter(name="language", value=info)
             root_element.append(lang_parameter)
-        root_element.append(self.parameter(name="linenumbers", value="true"))
+        linenumbers_value = "true" if self.enable_line_numbers else "false"
+        root_element.append(self.parameter(name="linenumbers", value=linenumbers_value))
         root_element.append(self.plain_text_body(code))
         return root_element.render()
 

@@ -62,6 +62,27 @@ def test_get_pages_from_directory_use_pages(fs):
     ]
 
 
+def test_get_pages_from_directory_realizes_title_prefix(fs):
+    fs.create_file("/root-folder/root-folder-file.md")
+    fs.create_file("/root-folder/parent/child/child-file.md")
+
+    result = doc.get_pages_from_directory(Path("/root-folder"), title_prefix="X")
+
+    assert result == [
+        FakePage(
+            title="X - root-folder-file",
+            file_path=Path("/root-folder/root-folder-file.md"),
+        ),
+        FakePage(title="X - parent", file_path=None),
+        FakePage(title="X - child", file_path=None, parent_title="X - parent"),
+        FakePage(
+            title="X - child-file",
+            file_path=Path("/root-folder/parent/child/child-file.md"),
+            parent_title="X - child",
+        ),
+    ]
+
+
 def test_get_pages_from_directory_collapse_single_pages(fs):
     fs.create_file("/root-folder/root-folder-file.md")
     fs.create_file("/root-folder/parent/child/child-file.md")

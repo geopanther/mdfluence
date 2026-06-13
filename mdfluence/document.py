@@ -31,6 +31,7 @@ from mdfluence.confluence_renderer import ConfluenceRenderer, RelativeLink
 from mdfluence.ignored_files import GitRepository
 from mdfluence.plugins.alerts import alerts
 from mdfluence.plugins.emoji import emoji as emoji_plugin
+from mdfluence.sync import apply_title_prefix
 
 
 class Page(object):
@@ -262,6 +263,9 @@ def get_pages_from_directory(
             # parented to the collapsed document.
             if len(markdown_files) == 1 and collapse_single_pages:
                 folder_data[current_path]["title"] = processed_page.title
+
+    for page in processed_pages:
+        apply_title_prefix(page, title_prefix)
 
     return processed_pages
 

@@ -23,6 +23,7 @@ from mdfluence.console_output import (
     minimal_output_console,
 )
 from mdfluence.document import Page
+from mdfluence.sync import apply_title_prefix
 from mdfluence.tui import Md2cfTUI
 from mdfluence.upsert import upsert_attachment, upsert_page
 
@@ -554,9 +555,6 @@ def pre_process_page(page, args, postface_markup, preface_markup, space_info):
         # If the argument is not supplied this leaves
         # the parent_title as None, which is fine
         page.parent_title = args.parent_title
-    else:
-        if args.prefix:
-            page.parent_title = f"{args.prefix} - {page.parent_title}"
 
     if page.parent_title is None:
         page.parent_id = (
@@ -568,9 +566,6 @@ def pre_process_page(page, args, postface_markup, preface_markup, space_info):
     # a child of the space's home page
     if args.top_level and page.parent_title is None and page.parent_id is None:
         page.parent_id = space_info.homepage.id
-
-    if args.prefix:
-        page.title = f"{args.prefix} - {page.title}"
 
     if preface_markup:
         page.body = preface_markup + page.body
@@ -729,6 +724,8 @@ def collect_pages_to_upload(args):
 
         if args.title:
             pages_to_upload[0].title = args.title
+
+        apply_title_prefix(pages_to_upload[0], args.prefix)
     else:
         for file_name in args.file_list:
             if file_name.is_dir():
@@ -757,21 +754,21 @@ def collect_pages_to_upload(args):
                     enable_relative_links = (
                         len(args.file_list) > 1 and args.enable_relative_links
                     )
-                    pages_to_upload.append(
-                        mdfluence.document.get_page_data_from_file_path(
-                            file_name,
-                            strip_header=args.strip_top_header,
-                            remove_text_newlines=args.remove_text_newlines,
-                            enable_relative_links=enable_relative_links,
-                            enable_emoji=not args.disable_emoji,
-                            convert_anchors=not args.disable_anchor_convert,
-                            render_diagrams=args.render_diagrams,
-                            mmdc_path=args.mmdc_path,
-                            plantuml_path=args.plantuml_path,
-                            title_prefix=args.prefix,
-                            enable_line_numbers=args.enable_line_numbers,
-                        )
+                    page = mdfluence.document.get_page_data_from_file_path(
+                        file_name,
+                        strip_header=args.strip_top_header,
+                        remove_text_newlines=args.remove_text_newlines,
+                        enable_relative_links=enable_relative_links,
+                        enable_emoji=not args.disable_emoji,
+                        convert_anchors=not args.disable_anchor_convert,
+                        render_diagrams=args.render_diagrams,
+                        mmdc_path=args.mmdc_path,
+                        plantuml_path=args.plantuml_path,
+                        title_prefix=args.prefix,
+                        enable_line_numbers=args.enable_line_numbers,
                     )
+                    apply_title_prefix(page, args.prefix)
+                    pages_to_upload.append(page)
                 except FileNotFoundError:
                     error_console.log(f"File {file_name} does not exist\n")
 
@@ -780,6 +777,7 @@ def collect_pages_to_upload(args):
 
             if args.title:
                 only_page.title = args.title
+                apply_title_prefix(only_page, args.prefix)
 
             # This is implicitly only truthy if relative link processing is active
             if only_page.relative_links:

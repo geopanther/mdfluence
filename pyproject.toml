@@ -1,6 +1,6 @@
 [project]
 name = "mdfluence"
-version = "0.4.1-rc3"
+version = "0.4.1-rc4"
 description = "Convert and upload Markdown documents to Confluence (fork of md2cf by Jack Gaino)"
 readme = "README.md"
 license = "MIT"

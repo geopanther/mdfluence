@@ -420,7 +420,14 @@ def parse_page(
             confluence_mistune.inline.rules.remove("inline_math")
             confluence_mistune.inline.register(
                 "inline_math",
-                r"\$(?!\$)(?P<math_text>(?:[^$\\\n]|\\.)+?)\$(?!\d)",
+                # Mistune's parse_inline_math (3.3.x) probes display_math_text
+                # and backtick_math_text groups first, so they must exist.
+                # The final alternative keeps mdfluence's stricter plain-math
+                # rule (no newlines, rejects currency via (?!\d)) while adopting
+                # Mistune's native (?!\s) to reject leading whitespace.
+                r"\$\$(?P<display_math_text>(?:[^$\\]|\\.)*?)\$\$|"
+                r"\$(?P<backtick_math_marker>`+)(?P<backtick_math_text>[\s\S]*?)(?P=backtick_math_marker)\$|"
+                r"\$(?!\$)(?!\s)(?P<math_text>(?:[^$\\\n]|\\.)+?)\$(?!\d)",
                 parse_inline_math,
                 before="link",
             )

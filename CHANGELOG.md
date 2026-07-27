@@ -25,6 +25,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **BREAKING (pre-1.0):** Confluence code block line numbers are now **off by default**. Existing users will lose line numbers on their next upload unless they pass `--enable-line-numbers`.
 - Use stdlib `html.parser.HTMLParser` for robust HTML-to-XHTML conversion instead of regex
 - Use dynamic default branch detection in publish-release script
+- Stage `.bumpversion.toml` in `merge-bump.sh` so version bumps stay consistent
+
+### Security
+
+- Bump `mistune` to `>=3.3.0`, resolving 10 known vulnerabilities (up to CVSS 8.7) present in `3.2.1`
+- Add `pydantic-settings >=2.14.2`, resolving GHSA-4xgf-cpjx-pc3j (symlink escape)
+- Upgrade `idna` to `3.15`, resolving GHSA-65pc-fj4g-8rjx
 
 ### CI
 

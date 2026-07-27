@@ -2,7 +2,7 @@ import hashlib
 import re
 from enum import Enum
 from pathlib import Path
-from typing import NamedTuple
+from typing import NamedTuple, Optional
 
 import mdfluence.document
 from mdfluence import api
@@ -48,7 +48,7 @@ def get_parent_id_from_title(confluence, page):
 
 def upsert_page(
     confluence: api.MinimalConfluence,
-    message: str,
+    message: Optional[str],
     page: mdfluence.document.Page,
     only_changed: bool = False,
     replace_all_labels: bool = False,

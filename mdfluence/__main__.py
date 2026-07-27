@@ -23,8 +23,13 @@ from mdfluence.console_output import (
     minimal_output_console,
 )
 from mdfluence.document import Page
+from mdfluence.sync import (
+    PublishOptions,
+    RelativeLinkError,
+    apply_title_prefix,
+    publish,
+)
 from mdfluence.tui import Md2cfTUI
-from mdfluence.upsert import upsert_attachment, upsert_page
 
 
 def get_parser():
@@ -414,291 +419,62 @@ def main():
             args.postface_file
         ).body
 
-    map_document_path_to_confluence_page = dict()
-    if args.enable_relative_links:
-        map_document_path_to_confluence_page = build_document_path_to_page_map(
-            pages_to_upload
-        )
-        if not args.ignore_relative_link_errors:
-            validate_relative_links(
-                pages_to_upload, map_document_path_to_confluence_page
-            )
+    options = PublishOptions(
+        space=args.space,
+        content_type=args.content_type,
+        page_id=args.page_id,
+        parent_title=args.parent_title,
+        parent_id=args.parent_id,
+        top_level=args.top_level,
+        prefix=args.prefix,
+        message=args.message,
+        minor_edit=args.minor_edit,
+        only_changed=args.only_changed,
+        replace_all_labels=args.replace_all_labels,
+        dry_run=args.dry_run,
+        debug=args.debug,
+        enable_relative_links=args.enable_relative_links,
+        ignore_relative_link_errors=args.ignore_relative_link_errors,
+        preface_markup=preface_markup,
+        postface_markup=postface_markup,
+    )
 
-    something_went_wrong = False
-    error = None
     tui = Md2cfTUI(pages_to_upload)
 
+    def emit_page_url(page, upserted_page):
+        minimal_output_console.log(confluence.get_url(upserted_page))
+        json_output_console.print_json(data=upserted_page, indent=None)
+
+    # The CLI owns the reporter's display session; publish() only observes it
+    # and performs the work gated by ``options``.
+    error = None
+    exit_code = 0
     with tui:
-        space_info = confluence.get_space(
-            args.space, additional_expansions=["homepage"]
-        )
-
-        for page in pages_to_upload:
-            pre_process_page(page, args, postface_markup, preface_markup, space_info)
-            tui.start_item_task(page.original_title)
-            upsert_page_result = None
-            try:
-                tui.set_item_progress_label(page.original_title, "Upserting")
-                final_page = None
-                if not args.dry_run:
-                    upsert_page_result = upsert_page(
-                        confluence=confluence,
-                        message=args.message,
-                        page=page,
-                        only_changed=args.only_changed,
-                        replace_all_labels=args.replace_all_labels,
-                        minor_edit=args.minor_edit,
-                    )
-                    final_page = upsert_page_result.response
-                    minimal_output_console.log(confluence.get_url(final_page))
-                    json_output_console.print_json(data=final_page, indent=None)
-                if page.attachments:
-                    tui.set_item_progress_label(
-                        page.original_title, "Processing attachments"
-                    )
-                    for attachment in page.attachments:
-                        attachment_identifier = f"{page.original_title} {attachment}"
-                        tui.start_item_task(attachment_identifier)
-                        if not args.dry_run:
-                            upsert_attachment_result = upsert_attachment(
-                                confluence=confluence,
-                                attachment=attachment,
-                                existing_page=final_page,
-                                message=args.message,
-                                only_changed=args.only_changed,
-                                page=page,
-                            )
-                            tui.set_item_finished_text_from_result(
-                                attachment_identifier, upsert_attachment_result
-                            )
-                        else:
-                            tui.set_item_finished_text(
-                                attachment_identifier,
-                                rich.text.Text.from_markup("[yellow]Skipped (dry run)"),
-                            )
-                        tui.set_item_progress_label(attachment_identifier, "")
-                        tui.tick_item_progress(attachment_identifier)
-                        tui.tick_item_progress(page.original_title)
-                        tui.tick_global_progress()
-                if page.file_path is not None and args.enable_relative_links:
-                    # Skip pages without a file_path
-                    # (e.g. section pages representing directories)
-                    map_document_path_to_confluence_page[page.file_path.resolve()] = (
-                        final_page
-                    )
-            except HTTPError as e:
-                if args.debug:
-                    console.print_exception(show_locals=True)
-                error = "{} - {}".format(str(e), e.response.content)
-                something_went_wrong = True
-            except Exception as e:
-                if args.debug:
-                    console.print_exception(show_locals=True)
-                error = "[red]ERROR:[default] {}".format(str(e))
-                something_went_wrong = True
-
-            tui.set_item_progress_label(page.original_title, "")
-            if not args.dry_run:
-                if not something_went_wrong:
-                    tui.set_item_finished_text_from_result(
-                        page.original_title, upsert_page_result
-                    )
-                else:
-                    tui.set_item_progress_label(
-                        page.original_title, "[red]:x: Error while uploading"
-                    )
-            else:
-                tui.set_item_finished_text(
-                    page.original_title,
-                    rich.text.Text.from_markup("[yellow]Skipped (dry run)"),
-                )
-
-            tui.tick_item_progress(page.original_title)
-            tui.tick_global_progress()
-
-            if something_went_wrong:
-                break
-
-        if not something_went_wrong and args.enable_relative_links:
-            try:
-                update_pages_with_relative_links(
-                    args,
-                    confluence,
-                    pages_to_upload,
-                    map_document_path_to_confluence_page,
-                    tui,
-                )
-            except HTTPError as e:
-                if args.debug:
-                    console.print_exception(show_locals=True)
-                error = "{} - {}".format(str(e), e.response.content)
-                something_went_wrong = True
-            except Exception as e:
-                if args.debug:
-                    console.print_exception(show_locals=True)
-                error = "[red]ERROR:[default] {}".format(str(e))
-                something_went_wrong = True
-
-    if something_went_wrong:
-        error_console.log(error)
-        sys.exit(1)
-
-
-def pre_process_page(page, args, postface_markup, preface_markup, space_info):
-    page.original_title = page.title
-    page.space = args.space
-    page.page_id = args.page_id
-    page.content_type = args.content_type
-
-    if page.parent_title is None:  # This only happens for top level pages
-        # If the argument is not supplied this leaves
-        # the parent_title as None, which is fine
-        page.parent_title = args.parent_title
-    else:
-        if args.prefix:
-            page.parent_title = f"{args.prefix} - {page.parent_title}"
-
-    if page.parent_title is None:
-        page.parent_id = (
-            page.parent_id or args.parent_id
-        )  # This can still end up being None.
-        # It's fine -- it means it's a top level page.
-
-    # If we want to *move* a page back to the top space, we need to make it
-    # a child of the space's home page
-    if args.top_level and page.parent_title is None and page.parent_id is None:
-        page.parent_id = space_info.homepage.id
-
-    if args.prefix:
-        page.title = f"{args.prefix} - {page.title}"
-
-    if preface_markup:
-        page.body = preface_markup + page.body
-
-    if postface_markup:
-        page.body = page.body + postface_markup
-
-
-def validate_relative_links(pages_to_upload, path_to_page):
-    invalid_links = False
-    for page in pages_to_upload:
-        for link_data in page.relative_links:
-            link_absolute_path = (
-                page.file_path.parent / Path(link_data.path)
-            ).resolve()
-            if link_absolute_path not in path_to_page:
-                error_console.log(
-                    f"Page {page.file_path} has a relative link to {link_data.path}"
-                    ", which is not in the list of pages to be uploaded.\n"
-                )
-                invalid_links = True
-    if invalid_links:
-        error_console.log(
-            "\nSome of the pages to be uploaded have invalid relative links.\n"
-        )
-        sys.exit(1)
-
-
-def build_document_path_to_page_map(pages_to_upload):
-    path_to_page = dict()
-    for page in pages_to_upload:
         try:
-            # Will be filled in later with the page returned by upsert
-            path_to_page[page.file_path.resolve()] = None
-        except AttributeError:
-            # A page might not have a file_path
-            # (for example if it's representing a directory)
-            continue
-    return path_to_page
+            publish(
+                confluence,
+                pages_to_upload,
+                options,
+                reporter=tui,
+                on_page_upserted=emit_page_url,
+            )
+        except RelativeLinkError as e:
+            error = f"\n{e}\n"
+            exit_code = 1
+        except HTTPError as e:
+            if args.debug:
+                console.print_exception(show_locals=True)
+            error = "{} - {}".format(str(e), e.response.content)
+            exit_code = 1
+        except Exception as e:
+            if args.debug:
+                console.print_exception(show_locals=True)
+            error = "[red]ERROR:[default] {}".format(str(e))
+            exit_code = 1
 
-
-def update_pages_with_relative_links(
-    args, confluence, pages_to_upload, path_to_page, tui
-):
-    something_went_wrong = False
-    error: Exception = Exception()
-    for page in pages_to_upload:
-        if page.file_path is None:
-            # Skip pages without a file_path
-            # (e.g. section pages representing directories)
-            continue
-
-        page_modified = False
-        for link_data in page.relative_links:
-            try:
-                link_absolute_path = (
-                    page.file_path.parent / Path(link_data.path)
-                ).resolve()
-                page_on_confluence = path_to_page[link_absolute_path]
-            except KeyError:
-                if args.ignore_relative_link_errors:
-                    page.body = page.body.replace(
-                        link_data.replacement,
-                        link_data.escaped_original
-                        + (("#" + link_data.fragment) if link_data.fragment else ""),
-                    )
-                    continue
-                else:
-                    error_console.log(
-                        f"Page {page.file_path} has a relative link to {link_data.path}"
-                        ", which was not uploaded correctly.\n"
-                    )
-                    break
-
-            # in a dry run we don't actually have page URLs since we never upload
-            # anything
-            if not args.dry_run:
-                page.body = page.body.replace(
-                    link_data.replacement,
-                    confluence.get_url(page_on_confluence)
-                    + (("#" + link_data.fragment) if link_data.fragment else ""),
-                )
-            page_modified = True
-
-        if page_modified:
-            tui.reset_item_task(page.original_title, total=1)
-            tui.set_item_progress_label(page.original_title, "Updating relative links")
-            tui.start_item_task(page.original_title)
-            if not args.dry_run:
-                try:
-                    upsert_page(
-                        confluence=confluence,
-                        message=args.message,
-                        page=page,
-                        only_changed=args.only_changed,
-                        replace_all_labels=args.replace_all_labels,
-                        minor_edit=True,
-                    )
-                except Exception as e:
-                    error = e
-                    something_went_wrong = True
-
-                if not something_went_wrong:
-                    tui.set_item_finished_text(
-                        page.original_title,
-                        rich.text.Text.from_markup(
-                            "[green]:heavy_check_mark-emoji: Updated "
-                            "(updated relative links)"
-                        ),
-                    )
-                else:
-                    tui.set_item_progress_label(
-                        page.original_title,
-                        "[red]:x: Error while updating relative links",
-                    )
-            else:
-                tui.set_item_finished_text(
-                    page.original_title,
-                    rich.text.Text.from_markup(
-                        "[yellow]Not updating relative links (dry run)"
-                    ),
-                )
-
-            tui.set_item_progress_label(page.original_title, "")
-            tui.tick_item_progress(page.original_title)
-
-        if something_went_wrong:
-            raise error
+    if exit_code:
+        error_console.log(error)
+        sys.exit(exit_code)
 
 
 def collect_pages_to_upload(args):
@@ -729,6 +505,8 @@ def collect_pages_to_upload(args):
 
         if args.title:
             pages_to_upload[0].title = args.title
+
+        apply_title_prefix(pages_to_upload[0], args.prefix)
     else:
         for file_name in args.file_list:
             if file_name.is_dir():
@@ -757,21 +535,21 @@ def collect_pages_to_upload(args):
                     enable_relative_links = (
                         len(args.file_list) > 1 and args.enable_relative_links
                     )
-                    pages_to_upload.append(
-                        mdfluence.document.get_page_data_from_file_path(
-                            file_name,
-                            strip_header=args.strip_top_header,
-                            remove_text_newlines=args.remove_text_newlines,
-                            enable_relative_links=enable_relative_links,
-                            enable_emoji=not args.disable_emoji,
-                            convert_anchors=not args.disable_anchor_convert,
-                            render_diagrams=args.render_diagrams,
-                            mmdc_path=args.mmdc_path,
-                            plantuml_path=args.plantuml_path,
-                            title_prefix=args.prefix,
-                            enable_line_numbers=args.enable_line_numbers,
-                        )
+                    page = mdfluence.document.get_page_data_from_file_path(
+                        file_name,
+                        strip_header=args.strip_top_header,
+                        remove_text_newlines=args.remove_text_newlines,
+                        enable_relative_links=enable_relative_links,
+                        enable_emoji=not args.disable_emoji,
+                        convert_anchors=not args.disable_anchor_convert,
+                        render_diagrams=args.render_diagrams,
+                        mmdc_path=args.mmdc_path,
+                        plantuml_path=args.plantuml_path,
+                        title_prefix=args.prefix,
+                        enable_line_numbers=args.enable_line_numbers,
                     )
+                    apply_title_prefix(page, args.prefix)
+                    pages_to_upload.append(page)
                 except FileNotFoundError:
                     error_console.log(f"File {file_name} does not exist\n")
 
@@ -780,6 +558,7 @@ def collect_pages_to_upload(args):
 
             if args.title:
                 only_page.title = args.title
+                apply_title_prefix(only_page, args.prefix)
 
             # This is implicitly only truthy if relative link processing is active
             if only_page.relative_links:

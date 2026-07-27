@@ -92,6 +92,20 @@ class Page(object):
         )
 
 
+def apply_title_prefix(page: "Page", prefix: str | None) -> None:
+    """Prefix a page's ``title`` and ``parent_title`` in place.
+
+    No-op when ``prefix`` is ``None`` or empty. A ``parent_title`` of ``None``
+    is left untouched (the page is a top-level page).
+    """
+    if not prefix:
+        return
+    if page.title is not None:
+        page.title = f"{prefix} - {page.title}"
+    if page.parent_title is not None:
+        page.parent_title = f"{prefix} - {page.parent_title}"
+
+
 def _subtree_has_markdown(path: Path, git_repo: GitRepository) -> bool:
     """Check if a directory tree contains any .md files (respecting gitignore)."""
     for dirpath, _, filenames in os.walk(path):
@@ -262,6 +276,9 @@ def get_pages_from_directory(
             # parented to the collapsed document.
             if len(markdown_files) == 1 and collapse_single_pages:
                 folder_data[current_path]["title"] = processed_page.title
+
+    for page in processed_pages:
+        apply_title_prefix(page, title_prefix)
 
     return processed_pages
 

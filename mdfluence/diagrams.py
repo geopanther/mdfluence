@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import atexit
 import logging
 import shutil
 import subprocess  # nosec B404
@@ -9,6 +10,16 @@ import tempfile
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
+
+# Temp dirs holding rendered diagram PNGs. They must outlive rendering so the
+# upload step can read them, so they are cleaned up once at process exit.
+_diagram_tempdirs: list[str] = []
+
+
+@atexit.register
+def _cleanup_diagram_tempdirs() -> None:
+    while _diagram_tempdirs:
+        shutil.rmtree(_diagram_tempdirs.pop(), ignore_errors=True)
 
 
 def render_mermaid(code: str, mmdc_path: str | None = None) -> bytes | None:
@@ -44,6 +55,21 @@ def render_mermaid(code: str, mmdc_path: str | None = None) -> bytes | None:
         if output_path.exists():
             return output_path.read_bytes()
         return None
+
+
+def write_diagram_png(png_data: bytes, filename: str) -> Path:
+    """Persist rendered diagram PNG bytes to a temp file and return its path.
+
+    Filesystem persistence for rendered diagrams lives here alongside the rest
+    of the diagram tooling so the Confluence renderer stays a pure markup
+    transformer and never touches the filesystem. The backing temp dir is
+    tracked for cleanup at process exit (see ``_cleanup_diagram_tempdirs``).
+    """
+    tmpdir = tempfile.mkdtemp(prefix="mdfluence-diagram-")
+    _diagram_tempdirs.append(tmpdir)
+    filepath = Path(tmpdir) / filename
+    filepath.write_bytes(png_data)
+    return filepath
 
 
 def render_plantuml(code: str, plantuml_path: str | None = None) -> bytes | None:

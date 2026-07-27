@@ -445,6 +445,91 @@ def test_publish_propagates_relative_link_error(mocker, tmp_path):
         publish(confluence, [page], _options(enable_relative_links=True))
 
 
+def test_publish_calls_on_page_upserted_after_upsert(mocker):
+    from mdfluence.sync import publish
+
+    confluence = _confluence_mock(mocker)
+    mocker.patch("mdfluence.sync.upsert_page")
+    seen = []
+    pages = [Page(title="A", body="a")]
+
+    publish(
+        confluence,
+        pages,
+        _options(),
+        on_page_upserted=lambda page, upserted: seen.append(page),
+    )
+
+    assert seen == pages
+
+
+def test_publish_does_not_call_on_page_upserted_in_dry_run(mocker):
+    from mdfluence.sync import publish
+
+    confluence = _confluence_mock(mocker)
+    mocker.patch("mdfluence.sync.upsert_page")
+    hook = mocker.Mock()
+
+    publish(
+        confluence,
+        [Page(title="A", body="a")],
+        _options(dry_run=True),
+        on_page_upserted=hook,
+    )
+
+    hook.assert_not_called()
+
+
+def test_publish_reraises_page_upsert_error(mocker):
+    from mdfluence.sync import publish
+
+    confluence = _confluence_mock(mocker)
+    mocker.patch("mdfluence.sync.upsert_page", side_effect=RuntimeError("boom"))
+
+    with pytest.raises(RuntimeError, match="boom"):
+        publish(confluence, [Page(title="A", body="a")], _options())
+
+
+def test_publish_treats_reporter_as_pure_observer(mocker):
+    # publish() must not manage the reporter's lifecycle: an observer without
+    # __enter__/__exit__ is a valid reporter. This guards against publish
+    # re-introducing a ``with reporter:`` scope around the mutation.
+    from mdfluence.sync import publish
+
+    class ObserverOnly:
+        def __init__(self):
+            self.started = []
+
+        def start_item_task(self, item_name):
+            self.started.append(item_name)
+
+        def set_item_progress_label(self, item_name, label):
+            pass
+
+        def set_item_finished_text(self, item_name, finished_text):
+            pass
+
+        def set_item_finished_text_from_result(self, item_name, upsert_result):
+            pass
+
+        def tick_item_progress(self, item_name):
+            pass
+
+        def tick_global_progress(self):
+            pass
+
+        def reset_item_task(self, item_name, total):
+            pass
+
+    confluence = _confluence_mock(mocker)
+    mocker.patch("mdfluence.sync.upsert_page")
+    reporter = ObserverOnly()
+
+    publish(confluence, [Page(title="A", body="a")], _options(), reporter=reporter)
+
+    assert reporter.started == ["A"]
+
+
 # --- Ask 2.6: public library surface ---------------------------------------------
 
 

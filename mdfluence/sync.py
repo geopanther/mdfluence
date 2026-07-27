@@ -78,10 +78,12 @@ class PublishOptions:
 
 @runtime_checkable
 class Reporter(Protocol):
-    """Progress-reporting surface used by :func:`publish`.
+    """Progress-*observation* surface notified by :func:`publish`.
 
-    ``Md2cfTUI`` implements this shape. Library callers that do not want any
-    output can use :class:`NullReporter`.
+    A reporter only receives progress notifications; it never gates or scopes
+    the publish work. Its display lifecycle (if any) is owned by the caller,
+    e.g. ``Md2cfTUI`` is used as ``with tui: publish(..., reporter=tui)``.
+    Library callers that do not want any output can use :class:`NullReporter`.
     """
 
     def start_item_task(self, item_name) -> None: ...
@@ -100,13 +102,13 @@ class Reporter(Protocol):
 
     def reset_item_task(self, item_name, total: int) -> None: ...
 
-    def __enter__(self) -> "Reporter": ...
-
-    def __exit__(self, *args, **kwargs) -> None: ...
-
 
 class NullReporter:
-    """A :class:`Reporter` that does nothing. Default for :func:`publish`."""
+    """A :class:`Reporter` that does nothing. Default for :func:`publish`.
+
+    Also usable as a no-op context manager for callers that want a uniform
+    ``with reporter:`` display-session pattern.
+    """
 
     def start_item_task(self, item_name) -> None:
         pass
@@ -323,17 +325,30 @@ def publish(
     reporter: Optional[Reporter] = None,
     prepare_pages: Optional[Callable[[List["Page"], Any], None]] = None,
     parent_resolver: Optional[Callable[["Page", Any], None]] = None,
+    on_page_upserted: Optional[Callable[["Page", Any], None]] = None,
 ) -> None:
     """Publish ``pages`` to Confluence.
 
     :param confluence: an authenticated :class:`MinimalConfluence` client.
     :param pages: the pages to upload (e.g. from ``get_pages_from_directory``).
     :param options: a :class:`PublishOptions` describing the run.
-    :param reporter: progress reporter; defaults to :class:`NullReporter`.
+    :param reporter: progress *observer*; defaults to :class:`NullReporter`.
+        The reporter is only notified of progress -- it never gates or scopes
+        the work. The caller owns the reporter's display lifecycle (e.g.
+        ``with tui: publish(...)``); ``publish`` never enters or exits it.
     :param prepare_pages: optional one-time hook ``(pages, space_info)`` called
         before the upload loop, e.g. to build a page tree.
     :param parent_resolver: optional per-page hook ``(page, space_info)`` that
         can set ``page.parent_id``. Defaults to :func:`default_parent_resolver`.
+    :param on_page_upserted: optional per-page hook ``(page, upserted_page)``
+        called after a successful (non dry-run) upsert, e.g. to emit the
+        resulting page URL. Never called in dry-run mode.
+
+    What work happens is gated solely by ``options`` (e.g.
+    ``enable_relative_links``, ``dry_run``). Any error raised while upserting a
+    page (or its attachments) is reported as an observation and then re-raised,
+    so callers can decide how to handle it. The library never calls
+    ``sys.exit``.
     """
     reporter = reporter or NullReporter()
 
@@ -348,24 +363,23 @@ def publish(
     if prepare_pages is not None:
         prepare_pages(pages, space_info)
 
-    with reporter:
-        for page in pages:
-            pre_process_page(
-                page,
-                options,
-                options.postface_markup,
-                options.preface_markup,
-                space_info,
-            )
-            if parent_resolver is not None:
-                parent_resolver(page, space_info)
-            else:
-                default_parent_resolver(page, space_info, options)
+    for page in pages:
+        pre_process_page(
+            page,
+            options,
+            options.postface_markup,
+            options.preface_markup,
+        )
+        if parent_resolver is not None:
+            parent_resolver(page, space_info)
+        else:
+            default_parent_resolver(page, space_info, options)
 
-            reporter.start_item_task(page.original_title)
+        reporter.start_item_task(page.original_title)
+        upsert_page_result = None
+        try:
             reporter.set_item_progress_label(page.original_title, "Upserting")
             final_page = None
-            upsert_page_result = None
             if not options.dry_run:
                 upsert_page_result = upsert_page(
                     confluence=confluence,
@@ -376,6 +390,8 @@ def publish(
                     minor_edit=options.minor_edit,
                 )
                 final_page = upsert_page_result.response
+                if on_page_upserted is not None:
+                    on_page_upserted(page, final_page)
 
             if page.attachments:
                 reporter.set_item_progress_label(
@@ -408,20 +424,29 @@ def publish(
 
             if page.file_path is not None and options.enable_relative_links:
                 path_to_page[page.file_path.resolve()] = final_page
-
-            reporter.set_item_progress_label(page.original_title, "")
-            if not options.dry_run:
-                reporter.set_item_finished_text_from_result(
-                    page.original_title, upsert_page_result
-                )
-            else:
-                reporter.set_item_finished_text(
-                    page.original_title,
-                    rich.text.Text.from_markup("[yellow]Skipped (dry run)"),
-                )
-
+        except Exception:
+            # Report the failure as an observation, then let the caller decide
+            # how to handle it (the CLI logs and exits).
+            reporter.set_item_progress_label(
+                page.original_title, "[red]:x: Error while uploading"
+            )
             reporter.tick_item_progress(page.original_title)
             reporter.tick_global_progress()
+            raise
+
+        reporter.set_item_progress_label(page.original_title, "")
+        if not options.dry_run:
+            reporter.set_item_finished_text_from_result(
+                page.original_title, upsert_page_result
+            )
+        else:
+            reporter.set_item_finished_text(
+                page.original_title,
+                rich.text.Text.from_markup("[yellow]Skipped (dry run)"),
+            )
+
+        reporter.tick_item_progress(page.original_title)
+        reporter.tick_global_progress()
 
     if options.enable_relative_links:
         update_pages_with_relative_links(

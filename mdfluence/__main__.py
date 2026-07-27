@@ -27,14 +27,9 @@ from mdfluence.sync import (
     PublishOptions,
     RelativeLinkError,
     apply_title_prefix,
-    build_document_path_to_page_map,
-    default_parent_resolver,
-    pre_process_page,
-    update_pages_with_relative_links,
-    validate_relative_links,
+    publish,
 )
 from mdfluence.tui import Md2cfTUI
-from mdfluence.upsert import upsert_attachment, upsert_page
 
 
 def get_parser():
@@ -444,139 +439,42 @@ def main():
         postface_markup=postface_markup,
     )
 
-    map_document_path_to_confluence_page = dict()
-    if args.enable_relative_links:
-        map_document_path_to_confluence_page = build_document_path_to_page_map(
-            pages_to_upload
-        )
-        if not args.ignore_relative_link_errors:
-            try:
-                validate_relative_links(
-                    pages_to_upload, map_document_path_to_confluence_page
-                )
-            except RelativeLinkError as e:
-                error_console.log(f"\n{e}\n")
-                sys.exit(1)
-
-    something_went_wrong = False
-    error = None
     tui = Md2cfTUI(pages_to_upload)
 
+    def emit_page_url(page, upserted_page):
+        minimal_output_console.log(confluence.get_url(upserted_page))
+        json_output_console.print_json(data=upserted_page, indent=None)
+
+    # The CLI owns the reporter's display session; publish() only observes it
+    # and performs the work gated by ``options``.
+    error = None
+    exit_code = 0
     with tui:
-        space_info = confluence.get_space(
-            args.space, additional_expansions=["homepage"]
-        )
+        try:
+            publish(
+                confluence,
+                pages_to_upload,
+                options,
+                reporter=tui,
+                on_page_upserted=emit_page_url,
+            )
+        except RelativeLinkError as e:
+            error = f"\n{e}\n"
+            exit_code = 1
+        except HTTPError as e:
+            if args.debug:
+                console.print_exception(show_locals=True)
+            error = "{} - {}".format(str(e), e.response.content)
+            exit_code = 1
+        except Exception as e:
+            if args.debug:
+                console.print_exception(show_locals=True)
+            error = "[red]ERROR:[default] {}".format(str(e))
+            exit_code = 1
 
-        for page in pages_to_upload:
-            pre_process_page(page, options, postface_markup, preface_markup, space_info)
-            default_parent_resolver(page, space_info, options)
-            tui.start_item_task(page.original_title)
-            upsert_page_result = None
-            try:
-                tui.set_item_progress_label(page.original_title, "Upserting")
-                final_page = None
-                if not args.dry_run:
-                    upsert_page_result = upsert_page(
-                        confluence=confluence,
-                        message=args.message,
-                        page=page,
-                        only_changed=args.only_changed,
-                        replace_all_labels=args.replace_all_labels,
-                        minor_edit=args.minor_edit,
-                    )
-                    final_page = upsert_page_result.response
-                    minimal_output_console.log(confluence.get_url(final_page))
-                    json_output_console.print_json(data=final_page, indent=None)
-                if page.attachments:
-                    tui.set_item_progress_label(
-                        page.original_title, "Processing attachments"
-                    )
-                    for attachment in page.attachments:
-                        attachment_identifier = f"{page.original_title} {attachment}"
-                        tui.start_item_task(attachment_identifier)
-                        if not args.dry_run:
-                            upsert_attachment_result = upsert_attachment(
-                                confluence=confluence,
-                                attachment=attachment,
-                                existing_page=final_page,
-                                message=args.message,
-                                only_changed=args.only_changed,
-                                page=page,
-                            )
-                            tui.set_item_finished_text_from_result(
-                                attachment_identifier, upsert_attachment_result
-                            )
-                        else:
-                            tui.set_item_finished_text(
-                                attachment_identifier,
-                                rich.text.Text.from_markup("[yellow]Skipped (dry run)"),
-                            )
-                        tui.set_item_progress_label(attachment_identifier, "")
-                        tui.tick_item_progress(attachment_identifier)
-                        tui.tick_item_progress(page.original_title)
-                        tui.tick_global_progress()
-                if page.file_path is not None and args.enable_relative_links:
-                    # Skip pages without a file_path
-                    # (e.g. section pages representing directories)
-                    map_document_path_to_confluence_page[page.file_path.resolve()] = (
-                        final_page
-                    )
-            except HTTPError as e:
-                if args.debug:
-                    console.print_exception(show_locals=True)
-                error = "{} - {}".format(str(e), e.response.content)
-                something_went_wrong = True
-            except Exception as e:
-                if args.debug:
-                    console.print_exception(show_locals=True)
-                error = "[red]ERROR:[default] {}".format(str(e))
-                something_went_wrong = True
-
-            tui.set_item_progress_label(page.original_title, "")
-            if not args.dry_run:
-                if not something_went_wrong:
-                    tui.set_item_finished_text_from_result(
-                        page.original_title, upsert_page_result
-                    )
-                else:
-                    tui.set_item_progress_label(
-                        page.original_title, "[red]:x: Error while uploading"
-                    )
-            else:
-                tui.set_item_finished_text(
-                    page.original_title,
-                    rich.text.Text.from_markup("[yellow]Skipped (dry run)"),
-                )
-
-            tui.tick_item_progress(page.original_title)
-            tui.tick_global_progress()
-
-            if something_went_wrong:
-                break
-
-        if not something_went_wrong and args.enable_relative_links:
-            try:
-                update_pages_with_relative_links(
-                    options,
-                    confluence,
-                    pages_to_upload,
-                    map_document_path_to_confluence_page,
-                    tui,
-                )
-            except HTTPError as e:
-                if args.debug:
-                    console.print_exception(show_locals=True)
-                error = "{} - {}".format(str(e), e.response.content)
-                something_went_wrong = True
-            except Exception as e:
-                if args.debug:
-                    console.print_exception(show_locals=True)
-                error = "[red]ERROR:[default] {}".format(str(e))
-                something_went_wrong = True
-
-    if something_went_wrong:
+    if exit_code:
         error_console.log(error)
-        sys.exit(1)
+        sys.exit(exit_code)
 
 
 def collect_pages_to_upload(args):

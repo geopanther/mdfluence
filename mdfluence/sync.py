@@ -18,6 +18,11 @@ from typing import (
 import rich.text
 
 from mdfluence.console_output import error_console
+
+# ``apply_title_prefix`` lives in ``mdfluence.document`` to avoid an import
+# cycle (``document`` needs it during page collection, and it must not import
+# ``sync``). It is re-exported here so it is discoverable on the public
+# ``mdfluence.sync`` surface alongside the rest of the publish API.
 from mdfluence.document import apply_title_prefix
 from mdfluence.upsert import upsert_attachment, upsert_page
 

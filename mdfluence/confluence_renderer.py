@@ -1,3 +1,4 @@
+import re
 import uuid
 from html.parser import HTMLParser
 from pathlib import Path
@@ -7,6 +8,8 @@ from urllib.parse import unquote, urlparse
 import mistune
 
 from mdfluence import diagrams
+from mdfluence.anchor import _heading_to_markdown_anchor
+from mdfluence.plugins.alerts import ALERT_TYPE_MAP
 
 _VOID_ELEMENTS = frozenset(
     {
@@ -177,12 +180,8 @@ class ConfluenceRenderer(mistune.HTMLRenderer):
         heading_html = super().heading(text, level, **attrs)
 
         if self._anchor_map:
-            # Find the confluence anchor for this heading by tracking heading order
-            from mdfluence.anchor import _heading_to_markdown_anchor
-
+            # Find the confluence anchor for this heading by tracking heading order.
             # Strip HTML tags to get plain text for slug computation
-            import re
-
             plain_text = re.sub(r"<[^>]+>", "", text).strip()
             md_base = _heading_to_markdown_anchor(plain_text)
             if md_base:
@@ -385,8 +384,6 @@ class ConfluenceRenderer(mistune.HTMLRenderer):
         return root.render()
 
     def block_alert(self, text, alert_type="NOTE"):
-        from mdfluence.plugins.alerts import ALERT_TYPE_MAP
-
         macro_name = ALERT_TYPE_MAP.get(alert_type.upper(), "info")
         root = self.structured_macro(macro_name)
         body_tag = ConfluenceTag("rich-text-body", namespace="ac")

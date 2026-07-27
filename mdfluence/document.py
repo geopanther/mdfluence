@@ -31,7 +31,6 @@ from mdfluence.confluence_renderer import ConfluenceRenderer, RelativeLink
 from mdfluence.ignored_files import GitRepository
 from mdfluence.plugins.alerts import alerts
 from mdfluence.plugins.emoji import emoji as emoji_plugin
-from mdfluence.sync import apply_title_prefix
 
 
 class Page(object):
@@ -91,6 +90,20 @@ class Page(object):
                 ]
             )
         )
+
+
+def apply_title_prefix(page: "Page", prefix: str | None) -> None:
+    """Prefix a page's ``title`` and ``parent_title`` in place.
+
+    No-op when ``prefix`` is ``None`` or empty. A ``parent_title`` of ``None``
+    is left untouched (the page is a top-level page).
+    """
+    if not prefix:
+        return
+    if page.title is not None:
+        page.title = f"{prefix} - {page.title}"
+    if page.parent_title is not None:
+        page.parent_title = f"{prefix} - {page.parent_title}"
 
 
 def _subtree_has_markdown(path: Path, git_repo: GitRepository) -> bool:

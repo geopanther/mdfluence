@@ -9,12 +9,11 @@ mdfluence is a fork of [md2cf](https://github.com/iamjackg/md2cf) by Jack Gaino.
 git clone https://github.com/geopanther/mdfluence.git
 cd mdfluence
 
-# Create a virtual environment
-python3.12 -m venv .venv --prompt mdfluence
-source .venv/bin/activate
+# Create/sync the virtual environment with dev dependencies
+uv sync --group dev
 
-# Install the package with dev and test dependencies
-pip install -e ".[dev,test]"
+# Activate the virtual environment
+source .venv/bin/activate
 
 # Set up pre-commit hooks
 pre-commit install

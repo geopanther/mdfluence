@@ -203,7 +203,7 @@ def test_pre_process_page_sets_metadata_from_options():
     page = Page(title="Title", body="Body")
     options = _options(page_id="7", content_type="blogpost")
 
-    pre_process_page(page, options, "", "", space_info=None)
+    pre_process_page(page, options, "", "")
 
     assert page.original_title == "Title"
     assert page.space == "TEST"
@@ -217,7 +217,7 @@ def test_pre_process_page_defaults_parent_title_from_options():
     page = Page(title="Title", body="Body", parent_title=None)
     options = _options(parent_title="Parent")
 
-    pre_process_page(page, options, "", "", space_info=None)
+    pre_process_page(page, options, "", "")
 
     assert page.parent_title == "Parent"
 
@@ -228,7 +228,7 @@ def test_pre_process_page_applies_preface_and_postface():
     page = Page(title="Title", body="BODY")
     options = _options()
 
-    pre_process_page(page, options, "POST", "PRE", space_info=None)
+    pre_process_page(page, options, "POST", "PRE")
 
     assert page.body == "PREBODYPOST"
 
@@ -239,7 +239,7 @@ def test_pre_process_page_does_not_prefix_title():
     page = Page(title="Title", body="Body", parent_title="Parent")
     options = _options(prefix="X")
 
-    pre_process_page(page, options, "", "", space_info=None)
+    pre_process_page(page, options, "", "")
 
     assert page.title == "Title"
     assert page.parent_title == "Parent"

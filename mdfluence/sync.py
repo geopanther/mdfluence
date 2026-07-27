@@ -145,7 +145,6 @@ def pre_process_page(
     options: PublishOptions,
     postface_markup: str,
     preface_markup: str,
-    space_info: Any = None,
 ) -> None:
     """Populate page metadata from ``options`` and wrap the body markup.
 

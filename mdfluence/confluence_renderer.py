@@ -6,6 +6,8 @@ from urllib.parse import unquote, urlparse
 
 import mistune
 
+from mdfluence import diagrams
+
 _VOID_ELEMENTS = frozenset(
     {
         "area",
@@ -254,14 +256,10 @@ class ConfluenceRenderer(mistune.HTMLRenderer):
             if png_data is not None:
                 self._diagram_counter += 1
                 filename = f"diagram-{self._diagram_counter}.png"
-                self.attachments.append(filename)
-                # Write temp file for upload
-                import tempfile
-
-                tmpdir = tempfile.mkdtemp()
-                filepath = Path(tmpdir) / filename
-                filepath.write_bytes(png_data)
-                self.attachments[-1] = str(filepath)
+                # Persisting the PNG for upload is a filesystem concern owned by
+                # the diagrams module, not the renderer.
+                filepath = diagrams.write_diagram_png(png_data, filename)
+                self.attachments.append(str(filepath))
                 # Render as image attachment
                 root_element = ConfluenceTag(
                     name="image", attrib={"alt": f"{info} diagram"}, namespace="ac"
@@ -282,12 +280,10 @@ class ConfluenceRenderer(mistune.HTMLRenderer):
         return root_element.render()
 
     def _render_diagram(self, code: str, diagram_type: str) -> bytes | None:
-        from mdfluence.diagrams import render_mermaid, render_plantuml
-
         if diagram_type == "mermaid":
-            return render_mermaid(code, mmdc_path=self.mmdc_path)
+            return diagrams.render_mermaid(code, mmdc_path=self.mmdc_path)
         elif diagram_type == "plantuml":
-            return render_plantuml(code, plantuml_path=self.plantuml_path)
+            return diagrams.render_plantuml(code, plantuml_path=self.plantuml_path)
         return None
 
     def image(self, text, url, title=None):

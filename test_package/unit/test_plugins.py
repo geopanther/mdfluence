@@ -161,9 +161,10 @@ class TestInlineMathPattern:
         page = parse_page(list("Inline $x^2$ end\n"))
         assert "mathinline" in page.body
 
-    def test_valid_inline_math_with_spaces(self):
+    def test_leading_space_not_matched(self):
+        """Mistune native parsing rejects leading whitespace after $."""
         page = parse_page(list("Inline $ x + y $ end\n"))
-        assert "mathinline" in page.body
+        assert "mathinline" not in page.body
 
     def test_valid_math_followed_by_letter(self):
         """The $n$th element pattern must work."""

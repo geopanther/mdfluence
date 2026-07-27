@@ -47,7 +47,7 @@ ALERT_TYPE_MAP = {
 
 def parse_block_alert(block: "BlockParser", m: Match[str], state: "BlockState") -> int:
     """Parse a blockquote, detecting GitHub-style alert or spoiler syntax."""
-    text, end_pos = block.extract_block_quote(m, state)
+    text, end_pos, _ = block.extract_block_quote(m, state)
     if not text.endswith("\n"):
         text += "\n"
 

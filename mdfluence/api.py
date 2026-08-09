@@ -63,6 +63,8 @@ class MinimalConfluence:
     def _request(self, method, path, **kwargs):
         r = self.api.request(method, urljoin(self.host, path), **kwargs)
         r.raise_for_status()
+        if r.status_code == 204:
+            return None
         return bunchify(r.json())
 
     def _get(self, path, **kwargs):
@@ -73,6 +75,9 @@ class MinimalConfluence:
 
     def _put(self, path, **kwargs):
         return self._request("PUT", path, **kwargs)
+
+    def _delete(self, path, **kwargs):
+        return self._request("DELETE", path, **kwargs)
 
     def get_page(
         self,
@@ -208,6 +213,29 @@ class MinimalConfluence:
             }
 
         return self._put(f"content/{page.id}", json=update_structure)
+
+    def delete_page(self, page_id):
+        return self._delete(f"content/{page_id}")
+
+    def get_child_pages(self, page_id):
+        """Return all child pages, following pagination."""
+        all_results = []
+        params = {"limit": 100}
+        while True:
+            result = self._get(f"content/{page_id}/child/page", params=params)
+            if not result or not result.results:
+                break
+            all_results.extend(result.results)
+            next_link = getattr(getattr(result, "_links", None), "next", None)
+            if not next_link:
+                break
+            # next_link is a relative URL with query params — extract start param
+            from urllib.parse import parse_qs, urlparse
+
+            parsed = urlparse(next_link)
+            qs = parse_qs(parsed.query)
+            params["start"] = int(qs.get("start", [0])[0])
+        return all_results
 
     def get_attachment(self, confluence_page, name):
         existing_attachments = self._get(

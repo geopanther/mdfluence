@@ -147,8 +147,10 @@ def page_needs_updating(page, existing_page, replace_all_labels):
         # print(f"Page labels have changed: {page.title} {page.labels}")
         return True
     else:
-        existing_page_hash_match = CONTENT_HASH_REGEX.search(
-            existing_page.version.message
+        existing_page_hash_match = (
+            CONTENT_HASH_REGEX.search(existing_page.version.message)
+            if hasattr(existing_page.version, "message")
+            else None
         )
         if existing_page_hash_match is not None:
             original_page_hash = existing_page_hash_match.group(1)
@@ -188,8 +190,10 @@ def upsert_attachment(
     else:
         should_update = True
         if only_changed:
-            existing_attachment_hash_match = CONTENT_HASH_REGEX.search(
-                existing_attachment.version.message
+            existing_attachment_hash_match = (
+                CONTENT_HASH_REGEX.search(existing_attachment.version.message)
+                if hasattr(existing_attachment.version, "message")
+                else None
             )
             if existing_attachment_hash_match is not None:
                 original_attachment_hash = existing_attachment_hash_match.group(1)

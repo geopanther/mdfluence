@@ -124,9 +124,15 @@ def labels_need_updating(page, existing_page):
     if page.labels is None:
         return False
 
-    if sorted(
-        [label.name for label in existing_page.metadata.labels.results]
-    ) != sorted(page.labels):
+    existing_labels = getattr(
+        getattr(getattr(existing_page, "metadata", None), "labels", None),
+        "results",
+        None,
+    )
+    if existing_labels is None:
+        return True
+
+    if sorted([label.name for label in existing_labels]) != sorted(page.labels):
         return True
 
 

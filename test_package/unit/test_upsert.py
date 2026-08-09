@@ -264,6 +264,21 @@ def test_page_needs_updating_page_changed(mocker):
     )
 
 
+def test_labels_need_updating_when_no_metadata(mocker):
+    """Page has no metadata.labels.results — should return True (needs update)"""
+    existing_page_mock = mocker.Mock(spec=[])
+
+    page = Page(
+        space=mocker.sentinel.space,
+        title=mocker.sentinel.title,
+        body="hello",
+        parent_id=mocker.sentinel.parent_id,
+        labels=["label1"],
+    )
+
+    assert mdfluence.upsert.labels_need_updating(page, existing_page_mock)
+
+
 def test_page_needs_updating_content_replace_all_labels_and_labels_not_changed(mocker):
     """We want to replace all the labels, but they have not changed"""
     labels = ["label1", "label2"]

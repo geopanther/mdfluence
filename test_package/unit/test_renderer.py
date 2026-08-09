@@ -371,6 +371,33 @@ def test_renderer_relative_link_with_fragment_enabled():
     assert relative_link.escaped_original == "document/../path/page.md#header-name"
 
 
+@pytest.mark.parametrize(
+    "url, expected_path, expected_fragment",
+    [
+        ("./guide.md", "./guide.md", ""),
+        ("./guide.md#authentication", "./guide.md", "authentication"),
+        ("./sub/deep.md", "./sub/deep.md", ""),
+        ("./sub/deep.md#details", "./sub/deep.md", "details"),
+        ("../index.md", "../index.md", ""),
+        ("../guide.md#authentication", "../guide.md", "authentication"),
+    ],
+)
+def test_renderer_relative_link_variants(url, expected_path, expected_fragment):
+    renderer = ConfluenceRenderer(enable_relative_links=True)
+
+    relative_link_regex = re.compile(
+        r"<a href=\"md2cf-internal-link-([-a-z0-9]+)\">link text</a>"
+    )
+    temporary_link = renderer.link(text="link text", url=url, title=None)
+    assert relative_link_regex.match(temporary_link)
+    assert len(renderer.relative_links) == 1
+    relative_link = renderer.relative_links[0]
+
+    assert relative_link.path == expected_path
+    assert relative_link.fragment == expected_fragment
+    assert relative_link.original == url
+
+
 def test_renderer_relative_link_disabled():
     renderer = ConfluenceRenderer(enable_relative_links=False)
 

@@ -220,12 +220,15 @@ def get_pages_from_directory(
                         .capitalize()
                     )
                 folder_title = parent_page_title
+        use_parent_title_as_prefix = False
         if use_pages_file and ".pages" in file_names:
             with open(current_path.joinpath(".pages")) as pages_fp:
                 pages_file_contents = yaml.safe_load(pages_fp)
             if "title" in pages_file_contents:
                 parent_page_title = pages_file_contents["title"]
                 folder_title = parent_page_title
+            if pages_file_contents.get("add-parent-title-as-prefix"):
+                use_parent_title_as_prefix = True
 
         folder_data[current_path]["title"] = folder_title
 
@@ -255,6 +258,12 @@ def get_pages_from_directory(
                 enable_line_numbers=enable_line_numbers,
             )
             processed_page.parent_title = parent_page_title
+            if (
+                use_parent_title_as_prefix
+                and parent_page_title
+                and processed_page.title
+            ):
+                processed_page.title = parent_page_title + " " + processed_page.title
             processed_pages.append(processed_page)
 
             # This replaces the title for the current folder with the title for the
